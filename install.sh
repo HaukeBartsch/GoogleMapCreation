@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #
 # INSTALLATION:
 # create a user processing with home /home/processing
