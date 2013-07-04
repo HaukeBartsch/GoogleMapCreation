@@ -65,7 +65,7 @@ proc readAssemblyData { filename } {
     }
 
     close $fp
-    return $assembly
+    return assembly
 }
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
