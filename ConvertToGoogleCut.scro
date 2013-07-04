@@ -33,7 +33,7 @@ proc readAssemblyData { filename } {
 	return;
     }
     array set assembly { 
-       dummy 1
+       filename $filename
     }
     # set assembly('filename') $filename
 
