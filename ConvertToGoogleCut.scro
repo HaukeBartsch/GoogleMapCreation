@@ -35,7 +35,7 @@ proc readAssemblyData { filename } {
     array set assembly { 
        dummy 1
     }
-    set assembly('filename') $filename
+    # set assembly('filename') $filename
 
     set fp [open $filename "r"]
 
