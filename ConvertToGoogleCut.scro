@@ -25,6 +25,20 @@
 #
 ########################################################################
 
+set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
+
+proc readAssemblyData { filename } {
+    if { ![file isreadable $filename] } {
+	echo "input file: $filename could not be read";
+	return;
+    }
+}
+
+
+set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
+echo "TrimLeft: $assembly['TrimLeft']"
+
+
 set tileSizeX 256
 set tileSizeY 256
 set subdirs 3
