@@ -32,6 +32,22 @@ proc readAssemblyData { filename } {
 	puts "input file: $filename could not be read";
 	return;
     }
+    set assembly []
+    set fp [open $filename "r"]
+
+    while { [gets $fp line] >= 0 } {
+	set elements [string trim [split $line "="]]
+        if { [llength $elements] == 2 } {
+	    set a [string trim [lindex $elements 0]]
+	    set b [string trim [lindex $elements 1]]
+	    if { $a == "TrimLeft" } {
+		assembly('TimLeft') = $b;
+            }
+	}
+    }
+
+    close $fp
+
 }
 
 
