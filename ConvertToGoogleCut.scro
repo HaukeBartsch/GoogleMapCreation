@@ -61,7 +61,7 @@ proc readAssemblyData { filename } {
 	    if { $a == "TileResolutionY" } {
 		set assembly(TileResolutionY) $b
             }
-            if { [regexp {Tile([0-9]+)(X|Y)} $a num xy] == 1 } {
+            if { [regexp {Tile([0-9]+)(X|Y)} $a all num xy] == 1 } {
                 set vals [list 0 0]
                 if { [info exists assembly($num)] } {
                    set vals $assembly($num)
