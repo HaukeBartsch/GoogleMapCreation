@@ -47,7 +47,7 @@ proc readAssemblyData { filename } {
     }
 
     close $fp
-
+    return $assembly;
 }
 
 
