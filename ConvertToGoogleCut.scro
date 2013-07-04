@@ -55,7 +55,7 @@ proc readAssemblyData { filename } {
 
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
-echo $assembly
+
 if { [info exists assembly('TrimLeft')] } {
     puts "TrimLeft: $assembly('TrimLeft')"
 } else {
