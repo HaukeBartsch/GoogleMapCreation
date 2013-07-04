@@ -36,8 +36,11 @@ proc readAssemblyData { filename } {
 
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
-echo "TrimLeft: $assembly['TrimLeft']"
-
+if { [info exists assembly('TrimLeft')] } {
+    echo "TrimLeft: $assembly('TrimLeft')"
+} else {
+    echo "TimLeft could not be found";
+}
 
 set tileSizeX 256
 set tileSizeY 256
