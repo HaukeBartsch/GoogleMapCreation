@@ -29,7 +29,7 @@ set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
 
 proc readAssemblyData { filename } {
     if { ![file readable $filename] } {
-	echo "input file: $filename could not be read";
+	puts "input file: $filename could not be read";
 	return;
     }
 }
@@ -37,9 +37,9 @@ proc readAssemblyData { filename } {
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
 if { [info exists assembly('TrimLeft')] } {
-    echo "TrimLeft: $assembly('TrimLeft')"
+    puts "TrimLeft: $assembly('TrimLeft')"
 } else {
-    echo "TimLeft could not be found";
+    puts "TimLeft could not be found";
 }
 
 set tileSizeX 256
