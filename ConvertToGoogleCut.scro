@@ -45,9 +45,14 @@ proc readAssemblyData { filename } {
 	    if { $a == "TrimLeft" } {
 		set assembly(TrimLeft) $b
             }
-            # assume top and bottom to be the same
 	    if { $a == "TrimRight" } {
 		set assembly(TrimRight) $b
+            }
+	    if { $a == "TrimTop" } {
+		set assembly(TrimTop) $b
+            }
+	    if { $a == "TrimBottom" } {
+		set assembly(TrimBottom) $b
             }
 	    if { $a == "GridX" } {
 		set assembly(GridX) $b
@@ -106,6 +111,13 @@ if { [info exists assembly(TileResolutionX)] } {
 set tileSizeX 256
 set tileSizeY 256
 set subdirs 3
+
+# now create a tile cache that is compatible with the rest
+set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
+set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
+puts "total size of image will be $maxX x $maxY"
+
+
 
 proc compute { maxX maxY idir odir } {
     global subdirs
