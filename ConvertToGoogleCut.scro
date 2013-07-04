@@ -42,6 +42,7 @@ proc readAssemblyData { filename } {
 	    set b [string trim [lindex $elements 1]]
 	    if { $a == "TrimLeft" } {
 		set assembly('TimLeft') $b;
+                puts "found a TrimLeft: $b";
             }
 	}
     }
@@ -52,10 +53,11 @@ proc readAssemblyData { filename } {
 
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
+echo $assembly
 if { [info exists assembly('TrimLeft')] } {
     puts "TrimLeft: $assembly('TrimLeft')"
 } else {
-    puts "TimLeft could not be found";
+    puts "TrimLeft could not be found";
 }
 
 set tileSizeX 256
