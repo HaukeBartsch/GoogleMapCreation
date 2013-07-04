@@ -65,11 +65,13 @@ proc readAssemblyData { filename } {
     }
 
     close $fp
-    return assembly
+    # return as list
+    return [array get assembly]
 }
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
-puts $assembly
+# convert back to array 
+array set assembly $assembly
 
 if { [info exists assembly('TrimLeft')] } {
     puts "TrimLeft: $assembly('TrimLeft'), $assembly('TrimRight')"
