@@ -115,8 +115,7 @@ set subdirs 3
 # now create a tile cache that is compatible with the rest
 set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
 set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
-puts "total size of image will be $maxX x $maxY"
-
+puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 0]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
 
 
 proc compute { maxX maxY idir odir } {
