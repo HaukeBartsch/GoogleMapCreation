@@ -68,9 +68,7 @@ proc readAssemblyData { filename } {
     return [array get assembly]
 }
 
-puts "put out value"
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
-puts "got value"
 
 if { [info exists assembly('TrimLeft')] } {
     puts "TrimLeft: $assembly('TrimLeft'), $assembly('TrimRight')"
@@ -83,9 +81,9 @@ if { [info exists assembly('GridX')] } {
     puts "GridX could not be found";
 }
 if { [info exists assembly('TileResolutionX')] } {
-    puts "GridX: $assembly('TileResolutionX') x $assembly('TileResolutionY')"
+    puts "TileResolution: $assembly('TileResolutionX') x $assembly('TileResolutionY')"
 } else {
-    puts "GridX could not be found";
+    puts "TileResolutionX/Y could not be found";
 }
 
 set tileSizeX 256
