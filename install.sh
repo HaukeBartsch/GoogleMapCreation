@@ -1,5 +1,6 @@
 #!/bin/sh
 
+#
 # INSTALLATION:
 # create a user processing with home /home/processing
 # copy this script the the directory /home/processing/src/GoogleMapCreation/
@@ -15,7 +16,7 @@ git config --global user.name `whoami`
 
 echo "create site at $website"
 mkdir -p $website
-
+cd $website
 git init
 git add .
 git commit -m "create GoogleMapCreation application directory"
@@ -35,7 +36,7 @@ git remote show hub
 git push hub master
 echo "done"
 
-cd $here/GoogleMapCreation_hub.git/hooks
+cd $here/GoogleMapCreation_hub.git/hooks/
 cat > post-update <<EOT
 #!/bin/sh
 
@@ -49,7 +50,7 @@ git pull hub master
 
 exec git-update-server-info
 EOT
-chmod +x $here/GoogleBrainMap_hub.git/hooks/post-update
+chmod +x $here/GoogleMapCreation_hub.git/hooks/post-update
 
 cd $website/.git/hooks
 cat > post-commit <<EOT
