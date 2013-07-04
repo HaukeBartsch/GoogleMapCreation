@@ -71,9 +71,9 @@ proc readAssemblyData { filename } {
     return [array get assembly]
 }
 
-set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
+set asem [readAssemblyData $inputDirectory/AssemblyData.txt]
 # convert back to array 
-array set assembly $assembly
+array set assembly $asem
 
 if { [info exists assembly('TrimLeft')] } {
     puts "TrimLeft: $assembly('TrimLeft'), $assembly('TrimRight')"
