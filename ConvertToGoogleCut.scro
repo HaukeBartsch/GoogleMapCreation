@@ -33,7 +33,7 @@ proc readAssemblyData { filename } {
 	return;
     }
     array set assembly {
-        filename $filename
+        filename "$filename"
     }
     set fp [open $filename "r"]
 
@@ -69,6 +69,7 @@ proc readAssemblyData { filename } {
 }
 
 set assembly [readAssemblyData $inputDirectory/AssemblyData.txt]
+puts $assembly
 
 if { [info exists assembly('TrimLeft')] } {
     puts "TrimLeft: $assembly('TrimLeft'), $assembly('TrimRight')"
