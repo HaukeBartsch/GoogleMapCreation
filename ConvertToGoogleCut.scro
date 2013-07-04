@@ -32,7 +32,9 @@ proc readAssemblyData { filename } {
 	puts "input file: $filename could not be read";
 	return;
     }
-    set assembly {}
+    array set assembly {
+        filename $filename
+    }
     set fp [open $filename "r"]
 
     while { [gets $fp line] >= 0 } {
