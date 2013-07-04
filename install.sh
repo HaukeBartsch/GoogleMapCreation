@@ -6,6 +6,9 @@
 # install git
 # run the script
 #
+# In order to see external directories from inside virtualbox add the user
+# processing to group vboxsf
+#   sudo usermod -a -G vboxsf processing
 
 website=$HOME/GoogleMapCreation
 # location for git to push to
