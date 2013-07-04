@@ -1,0 +1,352 @@
+#!/bin/tclsh 
+
+########################################################################
+# This script converts a directory from a microscope (jp2 images)
+# as tiles into a directory suitable for googles map display.
+# Image names are changed to reflect the trsq convention and sub-sample
+# images are created.
+# The script uses ImageMagic functions to merge images and compute the
+# sub-sample images.
+#
+# Last time called:
+#    tclsh
+#    source ConvertToGoogleCut.scro
+#    compute 645 633 HT_1510_flipped .
+#    (first two numbers are the rows and columns reported by DSS if
+#    export is done as CWS, tile size 512, the first directory contains the
+#    jpg images, the second directory contains the result in a Result/ directory)
+#
+# After creating the sub directires with all the image files they can be
+# packaged for transport using:
+#    zipSubDirs zipResult Result 3 1
+#
+# After transfering the tar-red files over to another machine, login there and
+# call: for u in `ls zipResult/*.tar`; do tar xvf $u; done; cd Result; chmod 777 .
+#
+########################################################################
+
+set tileSizeX 256
+set tileSizeY 256
+set subdirs 3
+
+proc compute { maxX maxY idir odir } {
+    global subdirs
+
+    puts "This script expects three parameters, two for the number of tiles in X and Y and one as a filename"
+
+    set d $odir
+    if { $d == "" } {
+	puts "Error: no input directory provided"
+	return
+    }
+	
+    set dir [file dirname $d]
+    file mkdir ${dir}/Result
+    set outputDir ${dir}/Result
+    createSubDirs $outputDir $subdirs 1
+	
+    #
+    #   T
+    #
+    #   TQ | TR
+    #   TT | TS
+    #
+
+    #
+    #  0_0 0_1 | 0_2 0_3
+    #  1_0 1_1 | 1_2 1_3
+    #  --------|--------
+    #  2_0 2_1 | 2_2 2_3
+    #  3_0 3_1 | 3_2 3_3
+    #
+    
+    # how many level do we have to do to get one image?
+    set level 1
+    set tmp [expr $maxY + 1]
+    while { [expr $tmp/2] > 1 } { incr level; set tmp [expr $tmp/2]; }
+    puts "We need $level different levels"
+    
+    # build the last minus 1 level interpolation
+    set ic 0
+    set jc 0
+	
+#    workArea startWorking "Computing..."
+if { true } {
+    for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+
+ 	puts "Computing $i of $maxX"
+
+	set jc 0
+	for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+	    set A [expr $i * $maxY + $j]
+	    set B [expr $i * $maxY + ($j+1)]
+	    set C [expr ($i+1) * $maxY + $j]
+	    set D [expr ($i+1) * $maxY + ($j+1)]
+	    # set A "${i}_${j}"
+	    # set B "${i}_[expr ${j}+1]"
+	    # set C "[expr ${i}+1]_${j}"
+	    # set D "[expr ${i}+1]_[expr ${j}+1]"
+	    #puts " $A $B - Q R  [tilename ${i} ${j} [expr $level+1] $subdirs] [tilename ${i} [expr ${j}+1] [expr $level+1] $subdirs]"
+	    #puts " $C $D - T S  [tilename [expr ${i}+1] ${j} [expr $level+1] $subdirs] [tilename [expr ${i} + 1] [expr ${j} + 1] [expr $level+1] $subdirs]"
+	    
+	    puts "call tilename ${ic} ${jc} $level"
+	    set result [tilename ${ic} ${jc} $level $subdirs]
+	    #puts "Create: $result"
+         if { ![file exists ${outputDir}/${result}.jpg] } {
+		   # touch the file to indicate that we own it
+		   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+	       merge4 ${idir}/Da${A}.jpg ${idir}/Da${B}.jpg ${idir}/Da${C}.jpg ${idir}/Da${D}.jpg ${outputDir}/${result}.jpg
+	    
+	       # copy the input data as highest resolution level into output
+            if { [catch {file copy -force ${idir}/Da${A}.jpg ${outputDir}/[tilename ${i} ${j} [expr $level+1] $subdirs].jpg} res] } {
+	          puts "ERROR copying: $res"
+            }
+            if { [catch {file copy -force ${idir}/Da${B}.jpg ${outputDir}/[tilename ${i} [expr ${j}+1] [expr $level+1] $subdirs].jpg} res] } {
+	          puts "ERROR copying: $res"
+            }
+            if { [catch {file copy -force ${idir}/Da${C}.jpg ${outputDir}/[tilename [expr ${i}+1] ${j} [expr $level+1] $subdirs].jpg} res ] } {
+	          puts "ERROR copying: $res"
+            }
+            if { [catch {file copy -force ${idir}/Da${D}.jpg ${outputDir}/[tilename [expr ${i}+1] [expr ${j}+1] [expr $level+1] $subdirs].jpg} res] } {
+	          puts "ERROR copying: $res"
+            }
+           }
+	    incr jc
+       	}
+	incr ic
+    }
+} 
+# END FALSE
+
+    # for all other levels we can merge the previously build tiles
+    while { $level > 0 } {
+	puts "create images for level $level"
+
+	set maxX [expr ceil($maxX/2.0)]
+	set maxY [expr ceil($maxY/2.0)]
+	set ic 0
+	set jc 0
+
+	puts "Images at level $level: $maxX x $maxY"
+	for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+	    set jc 0
+	    for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+		set A [tilename ${i} ${j} $level $subdirs]
+		set B [tilename ${i} [expr ${j} + 1] $level $subdirs]
+		set C [tilename [expr ${i}+1] ${j} $level $subdirs]
+		set D [tilename [expr ${i}+1] [expr ${j} + 1] $level $subdirs]
+		
+		puts " $A $B "
+		puts " $C $D  call tilename ${ic} ${jc} [expr $level -1]"
+		set result [tilename ${ic} ${jc} [expr $level - 1] $subdirs]
+		if { ![file exists ${outputDir}/${result}.jpg] } { 
+		   # touch the file to indicate that we own it
+		   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+  		   merge4 ${outputDir}/${A}.jpg ${outputDir}/${B}.jpg ${outputDir}/${C}.jpg ${outputDir}/${D}.jpg ${outputDir}/${result}.jpg
+		}
+				
+		incr jc
+	    }
+	    incr ic
+	}
+
+	set level [expr $level - 1]
+    }
+}
+
+# call with 3 to recreate the last three stages
+# assumes that images below that level already exist
+proc createLastStages { } {
+    # assume we are in the Result directory
+    set level 3
+    set outputDir "."
+    set subdirs 1
+    set maxX [expr pow(2,$level)]
+    set maxY $maxX
+    set ic 0
+    set jc 0
+
+   puts "images for level: $level"
+   for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+            set jc 0
+            for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+                set A [tilename ${i} ${j} $level $level]
+                set B [tilename ${i} [expr ${j} + 1] $level $level]
+                set C [tilename [expr ${i}+1] ${j} $level $level]
+                set D [tilename [expr ${i}+1] [expr ${j} + 1] $level $level]
+                if { ![file exists ${outputDir}/${A}.jpg] } {
+                   continue;
+                }
+                
+                puts " $A $B "
+                puts " $C $D  call tilename ${ic} ${jc} [expr $level -1]"
+                set result [tilename ${ic} ${jc} [expr $level - 1] [expr $level-1]]
+                puts "we would create file ${outputDir}/${result}.jpg now"
+                if { ![file exists ${outputDir}/${result}.jpg] } { 
+                   # touch the file to indicate that we own it
+                   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+                   merge4 ${outputDir}/${A}.jpg ${outputDir}/${B}.jpg ${outputDir}/${C}.jpg ${outputDir}/${D}.jpg ${outputDir}/${result}.jpg
+                }
+                incr jc
+            }
+            incr ic
+    }
+    set level 2
+    set outputDir "."
+    set subdirs 1
+    set maxX [expr pow(2,$level)]
+    set maxY $maxX
+    set ic 0
+    set jc 0
+
+   puts "images for level: $level"
+   for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+            set jc 0
+            for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+                set A [tilename ${i} ${j} $level $level]
+                set B [tilename ${i} [expr ${j} + 1] $level $level]
+                set C [tilename [expr ${i}+1] ${j} $level $level]
+                set D [tilename [expr ${i}+1] [expr ${j} + 1] $level $level]
+                if { ![file exists ${outputDir}/${A}.jpg] } {
+                   continue;
+                }
+
+                puts " $A $B "
+                puts " $C $D  call tilename ${ic} ${jc} [expr $level -1]"
+                set result [tilename ${ic} ${jc} [expr $level - 1] 0]
+                if { ![file exists ${outputDir}/${result}.jpg] } { 
+                   # touch the file to indicate that we own it
+                   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+                   merge4 ${outputDir}/${A}.jpg ${outputDir}/${B}.jpg ${outputDir}/${C}.jpg ${outputDir}/${D}.jpg ${outputDir}/${result}.jpg
+                   puts "we would create file ${outputDir}/${result}.jpg now"
+                }
+                incr jc
+            }
+            incr ic
+    }
+    # last image
+    merge4 ${outputDir}/tq.jpg ${outputDir}/tr.jpg ${outputDir}/tt.jpg ${outputDir}/ts.jpg ${outputDir}/t.jpg
+}
+
+# create all the directories requires recursively
+# call this with startdir 3 1
+proc createSubDirs { startDir levelsTotal level } {
+   file mkdir $startDir/q
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/q $levelsTotal [expr $level + 1]
+   }
+   file mkdir $startDir/r
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/r $levelsTotal [expr $level + 1]
+   }
+   file mkdir $startDir/s
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/s $levelsTotal [expr $level + 1]
+   }
+   file mkdir $startDir/t
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/t $levelsTotal [expr $level + 1]
+   }
+}
+# call this with zipdir startdir 3 1
+proc zipSubDirs { resultDir startDir levelsTotal level } {
+   if { ![file isdirectory $resultDir] } {
+      file mkdir $resultDir
+   }
+   #file mkdir $startDir/q
+   if { [llength [glob -nocomplain $startDir/q/*.jpg]] > 0 } {
+     exec find $startDir/q/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_q.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/q $levelsTotal [expr $level + 1]
+   }
+   #file mkdir $startDir/r
+   if { [llength [glob -nocomplain $startDir/r/*.jpg]] > 0 } {
+     exec find $startDir/r/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_r.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/r $levelsTotal [expr $level + 1]
+   }
+   #file mkdir $startDir/s
+   if { [llength [glob -nocomplain $startDir/s/*.jpg]] > 0 } {
+     exec find $startDir/s/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_s.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/s $levelsTotal [expr $level + 1]
+   }
+   #file mkdir $startDir/t
+   if { [llength [glob -nocomplain $startDir/t/*.jpg]] > 0 } {
+     exec find $startDir/t/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_t.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/t $levelsTotal [expr $level + 1]
+   }
+}
+
+proc merge4 { A B C D result } {
+    global env tileSizeX tileSizeY
+    # create from 4 256x256 images a new 128x128 image with a 2x2 layout
+
+    set count 0
+    if { ![file exists $A] } {
+       set A empty.jpg
+       incr count
+    }
+    if { ![file exists $B] } {
+       set B empty.jpg
+       incr count
+    }
+    if { ![file exists $C] } {
+       set C empty.jpg
+       incr count
+    }
+    if { ![file exists $D] } {
+       set D empty.jpg
+       incr count
+    }
+
+    # no sense in creating a fully empty tile, this should save some memory
+    if { $count == 4 } {
+       return;
+    }
+    if { [catch {exec montage -font Bookman $A $B $C $D -interlace plane -geometry [expr ${tileSizeX}/2]x[expr ${tileSizeY}/2]+0+0 $result} res] } {
+	   puts "ERROR: from montage $res"
+    } else {
+	   puts "created: \"$result\""
+    }
+}
+
+proc tilename { j i level subdirs} {
+    set c [expr pow(2,$level)]
+    set d ${i}
+    set e ${j}
+    set f "t"
+    for { set g 0 } { $g < $level } { incr g } {
+  	  set c [expr $c/2]
+	  if { $e < $c } {
+	    if { $d < $c } {
+		set f "${f}q"
+	    } else {
+		set f "${f}r"
+		set d [expr ${d} - ${c}]
+	    }
+	  } else {
+	    if { $d < $c } {
+		set f "${f}t"
+		set e [expr ${e} - ${c}]
+	    } else {
+		set f "${f}s"
+		set d [expr ${d} - ${c}]
+		set e [expr ${e} - ${c}]
+	    }
+	  }
+    }
+    set tmp ""
+    if { [string length $f] >= $subdirs } {
+        for { set i 0 } { $i < $subdirs} { incr i } {
+               set tmp $tmp[string index $f $i]/
+        }
+    }
+    set tmp ${tmp}$f
+    return $tmp;
+}
