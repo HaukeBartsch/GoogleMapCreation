@@ -87,8 +87,8 @@ proc readAssemblyData { filename } {
     return [array get assembly]
 }
 
-proc computeFirstLevel { maxX maxY idir odir } {
-    upvar assembly assembly
+proc computeFirstLevel { maxX maxY idir odir assembly } {
+    array set assembly $assembly
     puts "we have access to the assembly here: $assembly(GridX)"
     # find out the order of tiles, start with the first tile and arrange them into a 2x2 grid
     for { set i 0 } { $i < $maxX } { incr i } {
@@ -130,7 +130,7 @@ set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBott
 puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
 
 
-computeFirstLevel $maxX $maxY $inputDirectory $outputDirectory $assembly
+computeFirstLevel $maxX $maxY $inputDirectory $outputDirectory [array get assembly]
 
 
 proc compute { maxX maxY idir odir } {
