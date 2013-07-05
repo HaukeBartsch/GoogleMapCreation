@@ -95,7 +95,11 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
     for { set i 0 } { $i < $maxX } { incr i } {
       for { set j 0 } { $j < $maxY } { incr j } {
 	  set idx [expr $i * $maxY + $j + 1]
-          puts "$i,$j <- [lindex $asem($idx) 0] [lindex $asem($idx) 1]"
+          if { ![info exists asem($idx)] } {
+              puts "$i,$j does not exist"
+          } else {
+            puts "$i,$j <- [lindex $asem($idx) 0] [lindex $asem($idx) 1]"
+          }
       }
     }
 }
