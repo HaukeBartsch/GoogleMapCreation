@@ -26,6 +26,7 @@
 ########################################################################
 
 set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
+set outputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output"
 
 proc readAssemblyData { filename } {
     if { ![file readable $filename] } {
@@ -115,8 +116,15 @@ set subdirs 3
 # now create a tile cache that is compatible with the rest
 set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
 set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
-puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 0]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
+puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
 
+computeFirstLevel $maxX $maxY $inputDirectory $outputDirectory
+
+proc computeFirstLevel { maxX maxY idir odir } {
+  # find out the order of tiles, start with the first tile and arrange them into a 2x2 arrays
+
+
+}
 
 proc compute { maxX maxY idir odir } {
     global subdirs
