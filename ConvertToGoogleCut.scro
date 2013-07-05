@@ -90,10 +90,11 @@ proc readAssemblyData { filename } {
 proc computeFirstLevel { maxX maxY idir odir assembly } {
     array set asem $assembly
     puts "we have access to the assembly here: $asem(GridX)"
+    puts "run this for $maxX x $maxY"
     # find out the order of tiles, start with the first tile and arrange them into a 2x2 grid
     for { set i 0 } { $i < $maxX } { incr i } {
       for { set j 0 } { $j < $maxY } { incr j } {
-         
+         puts "at $i, $j"         
       }
     }
 }
