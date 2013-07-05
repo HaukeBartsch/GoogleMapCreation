@@ -131,7 +131,7 @@ set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBott
 puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
 
 
-computeFirstLevel $maxX $maxY $inputDirectory $outputDirectory [array get assembly]
+computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly]
 
 
 proc compute { maxX maxY idir odir } {
