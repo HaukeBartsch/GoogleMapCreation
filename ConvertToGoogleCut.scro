@@ -106,6 +106,14 @@ proc readAssemblyData { filename } {
     return [array get assembly]
 }
 
+# Create output tiles given overlapping input tiles
+# input: the number of four tiles that can be concatenated
+# output: writes the new tiles to the output directory
+proc process4Tiles { one two three four odir } {
+    exec "montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png"
+    exit
+}
+
 proc computeFirstLevel { maxX maxY idir odir assembly } {
     array set asem $assembly
     puts "we have access to the assembly here: $asem(GridX)"
@@ -124,28 +132,30 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               if { [info exists asem($idx2)] } {
    	         set two $asem($idx2)
               } else {
-                 set two "empty"
+                 set two "empty.jpg"
 	      }
               set idx3 [expr $i+0]-[expr $j+1]
               if { [info exists asem($idx3)] } {
 	         set three $asem($idx3)
               } else {
-                 set three "empty"
+                 set three "empty.jpg"
 	      }
               set idx4 [expr $i+1]-[expr $j+1]
               if { [info exists asem($idx4)] } {
   	         set four  $asem($idx4)
               } else {
-                 set four "empty"
+                 set four "empty.jpg"
 	      }
               set ars [list $idx1 $idx2 $idx3 $idx4]
 
-              set first [expr $first + 1]
-  	      if { $first == 52 } {
-                  set first 101
-                  # puts "$one, $two; $three, $four"
-              }
+              #set first [expr $first + 1]
+  	      #if { $first == 52 } {
+              #    set first 101
+              #    # puts "$one, $two; $three, $four"
+              #}
               puts -nonewline "x"
+              # now process the four tiles
+              process4Tiles $one $two $three $four $odir
           } else {
              puts -nonewline "."
           }
