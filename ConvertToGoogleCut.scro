@@ -84,6 +84,20 @@ proc readAssemblyData { filename } {
 
     close $fp
     # return as list
+
+    # create the correct index pair
+    set tilex [expr $assembly(TileResolutionX) - $assembly(TrimLeft) - $assembly(TrimRight)]
+    set tiley [expr $assembly(TileResolutionY) - $assembly(TrimTop) - $assembly(TrimBottom)]
+    for { set i 0 } { $i < [expr $maxX * $maxY] } { incr i } {
+	if { [info exists assembly($idx)] } {
+            # we have a tile at this location
+	    set vals $assembly($idx)
+	    set x [expr [lindex $vals 0]/$tilex]
+	    set y [expr [lindex $vals 1]/$tiley]
+            puts "found x, y: $x, $y"
+	}
+    }
+
     return [array get assembly]
 }
 
