@@ -72,7 +72,7 @@ proc readAssemblyData { filename } {
                 if { [info exists assembly($num)] } {
                    set vals $assembly($num)
                 }
-		if { $xy == "X" } {
+		if { $xy == "Y" } {
 		    set vals [list $b [lindex $vals 1]]
                 } else {
 		    set vals [list [lindex $vals 0] $b]
@@ -85,7 +85,7 @@ proc readAssemblyData { filename } {
     close $fp
     # return as list
 
-    # create the correct index pair
+    # create the correct index pairs
     set tilex [expr $assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight) ]
     set tiley [expr $assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom) ]
     #set tilex [expr $assembly(TileResolutionX) - $assembly(TrimLeft) - $assembly(TrimRight)]
