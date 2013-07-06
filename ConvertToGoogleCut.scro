@@ -139,7 +139,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
                      set four "empty"
 		  }
                   set ars [list $idx1 $idx2 $idx3 $idx4]
-                  #puts "$one, $two; $three, $four"
+                  puts "$one, $two; $three, $four"
               }
               if { [lindex $ars 0] == $idx1 } {
                  puts -nonewline "1"
