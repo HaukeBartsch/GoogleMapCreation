@@ -123,7 +123,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
           #    puts "$i,$j <- [lindex $asem($idx) 0] [lindex $asem($idx) 1]"
           #}
       }
-      puts "\n"
+      puts ""
     }
 }
 
