@@ -94,7 +94,7 @@ proc readAssemblyData { filename } {
 	if { [info exists assembly($idx)] } {
             # we have a tile at this location
 	    set vals $assembly($idx)
-	    set x [expr int(floor([lindex $vals 0]/$tilex))+1] # starts counting at 1
+	    set x [expr int(floor([lindex $vals 0]/$tilex))+1]
 	    set y [expr int(floor([lindex $vals 1]/$tiley))+1]
             # puts "found x, y: $x, $y"
             set assembly($x-$y) $idx
