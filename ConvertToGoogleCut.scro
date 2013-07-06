@@ -97,7 +97,7 @@ proc readAssemblyData { filename } {
 	    set x [expr floor([lindex $vals 0]/$tilex)]
 	    set y [expr floor([lindex $vals 1]/$tiley)]
             # puts "found x, y: $x, $y"
-            set assembly($x,$y) $idx
+            set assembly($x-$y) $idx
 	}
     }
 
@@ -111,7 +111,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
     # find out the order of tiles, start with the first tile and arrange them into a 2x2 grid
     for { set i 0 } { $i < $maxX } { incr i } {
       for { set j 0 } { $j < $maxY } { incr j } {
-          if { [info exists asm($i,$j)] } {
+          if { [info exists asm($i-$j)] } {
              puts -nonewline "x"
           } else {
              puts -nonewline "."
