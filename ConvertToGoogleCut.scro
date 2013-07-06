@@ -118,16 +118,19 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
                   #set first true
                   # find four parts
                   set one   $asem($i-$j)
-  	          set two   $asem([expr $i+1]-[expr $j+0])
-		  set three $asem([expr $i+0]-[expr $j+1])
-		  set four  $asem([expr $i+1]-[expr $j+1])
-                  if { ![info exists asem($two)] } {
+                  if { [info exists asem($two)] } {
+   	             set two $asem([expr $i+1]-[expr $j+0])
+                  } else {
                      set two "empty"
 		  }
-                  if { ![info exists asem($three)] } {
+                  if { [info exists asem($three)] } {
+		     set three $asem([expr $i+0]-[expr $j+1])
+                  } else {
                      set three "empty"
 		  }
-                  if { ![info exists asem($four)] } {
+                  if { [info exists asem($four)] } {
+  		     set four  $asem([expr $i+1]-[expr $j+1])
+                  } else {
                      set four "empty"
 		  }
                   puts "$one, $two; $three, $four"
