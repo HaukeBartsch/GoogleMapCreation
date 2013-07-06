@@ -115,7 +115,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
           if { [info exists asem($i-$j)] } {
               puts -nonewline "x"
 	      if { $first == "false" } {
-                  set first true
+                  #set first true
                   # find four parts
                   set one   $asem($i-$j)
   	          set two   $asem([expr $i+1]-[expr $j+0])
