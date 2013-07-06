@@ -90,7 +90,7 @@ proc readAssemblyData { filename } {
     set tiley [expr $assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom) ]
     #set tilex [expr $assembly(TileResolutionX) - $assembly(TrimLeft) - $assembly(TrimRight)]
     #set tiley [expr $assembly(TileResolutionY) - $assembly(TrimTop) - $assembly(TrimBottom)]
-    for { set i 0 } { $i < [expr $assembly(maxX * $maxY] } { incr i } {
+    for { set i 0 } { $i < [expr $assembly(GridX) * $assembly(GridY)] } { incr i } {
 	if { [info exists assembly($idx)] } {
             # we have a tile at this location
 	    set vals $assembly($idx)
