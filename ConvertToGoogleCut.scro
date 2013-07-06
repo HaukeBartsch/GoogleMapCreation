@@ -142,11 +142,11 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               }
               if { [lindex $ars 0] == $idx1 } {
                  puts -nonewline "1"
-              } else if { [lindex $ars 1] == $idx1 } {
+              } elseif { [lindex $ars 1] == $idx1 } {
                  puts -nonewline "2"
- 	      } else if { [lindex $ars 2] == $idx1 } {
+ 	      } elseif { [lindex $ars 2] == $idx1 } {
                  puts -nonewline "3"
-              } else if { [lindex $ars 3] == $idx1 } {
+              } elseif { [lindex $ars 3] == $idx1 } {
                  puts -nonewline "4"
               } else {
                  puts -nonewline "x"
