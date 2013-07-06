@@ -72,7 +72,7 @@ proc readAssemblyData { filename } {
                 if { [info exists assembly($num)] } {
                    set vals $assembly($num)
                 }
-		if { $xy == "Y" } {
+		if { $xy == "X" } {
 		    set vals [list $b [lindex $vals 1]]
                 } else {
 		    set vals [list [lindex $vals 0] $b]
