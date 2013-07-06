@@ -136,7 +136,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
                   } else {
                      set four "empty"
 		  }
-                  puts "$one, $two; $three, $four"
+                  #puts "$one, $two; $three, $four"
               }
           } else {
              puts -nonewline "."
