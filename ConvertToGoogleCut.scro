@@ -122,7 +122,7 @@ proc process4Tiles { one two three four idir odir } {
     if { $four != "empty.jpg" } {
 	set four  $idir/000000_[format "%06d" $four].jp2
     }
-    exec "/usr/bin/montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png"
+    exec "/bin/bash /usr/bin/montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png"
     exit
 }
 
