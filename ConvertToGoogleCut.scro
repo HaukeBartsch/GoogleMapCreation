@@ -110,6 +110,7 @@ proc readAssemblyData { filename } {
 # input: the number of four tiles that can be concatenated
 # output: writes the new tiles to the output directory
 proc process4Tiles { one two three four idir odir } {
+    set ofn $one_$two_$three_$four.png
     if { $one != "empty.jpg" } {
 	set one  $idir/000000_[format "%06d" $one].jp2
     }
@@ -123,12 +124,13 @@ proc process4Tiles { one two three four idir odir } {
 	set four  $idir/000000_[format "%06d" $four].jp2
     }
 
-    if { [catch {exec montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png} res] } {
+    set result ${odir}/$ofn
+    if { [catch {exec montage $one $two $three $four -geometry -50-50 -tile 2x2 $result} res] } {
 	   puts "ERROR: from montage $res"
     } else {
 	   puts "created: \"$result\""
     }
-    exit
+    #exit
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
