@@ -110,7 +110,19 @@ proc readAssemblyData { filename } {
 # input: the number of four tiles that can be concatenated
 # output: writes the new tiles to the output directory
 proc process4Tiles { one two three four idir odir } {
-    exec "montage $idir/000000_[format "%06d" $one].jp2 $idir/000000_[format "%06d" $two].jp2 $idir/000000_[format "%06d" $three].jp2 $idir/000000_[format "%06d" $four].jp2 -geometry -50-50 -tile 2x2 ${odir}/test.png"
+    if { $one != "empty.jpg" } {
+	set one  $idir/000000_[format "%06d" $one].jp2
+    }
+    if { $two != "empty.jpg" } {
+	set two  $idir/000000_[format "%06d" $two].jp2
+    }
+    if { $three != "empty.jpg" } {
+	set three  $idir/000000_[format "%06d" $three].jp2
+    }
+    if { $four != "empty.jpg" } {
+	set four  $idir/000000_[format "%06d" $four].jp2
+    }
+    exec "montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png"
     exit
 }
 
