@@ -122,9 +122,12 @@ proc process4Tiles { one two three four idir odir } {
     if { $four != "empty.jpg" } {
 	set four  $idir/000000_[format "%06d" $four].jp2
     }
-    set cmd "/bin/bash -c '/usr/bin/montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png'\n"
-    puts $cmd
-    exec $cmd
+
+    if { [catch {exec montage $one $two $three $four -geometry -50-50 -tile 2x2 ${odir}/test.png} res] } {
+	   puts "ERROR: from montage $res"
+    } else {
+	   puts "created: \"$result\""
+    }
     exit
 }
 
