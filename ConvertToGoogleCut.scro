@@ -110,7 +110,7 @@ proc readAssemblyData { filename } {
 # input: the number of four tiles that can be concatenated
 # output: writes the new tiles to the output directory
 proc process4Tiles { one two three four idir odir } {
-    set ofn $one_$two_$three_$four.png
+    set ofn ${one}_${two}_${three}_${four}.png
     if { $one != "empty.jpg" } {
 	set one  $idir/000000_[format "%06d" $one].jp2
     }
