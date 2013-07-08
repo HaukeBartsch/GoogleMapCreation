@@ -174,7 +174,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #}
               puts -nonewline "x"
               # now process the four tiles
-              process4Tiles $one $two $three $four $idir $odir
+              #process4Tiles $one $two $three $four $idir $odir
           } else {
              puts -nonewline "."
           }
