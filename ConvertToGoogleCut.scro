@@ -126,9 +126,9 @@ proc process4Tiles { one two three four idir odir } {
 
     set result ${odir}/$ofn
     if { [catch {exec montage $one $two $three $four -geometry -50-50 -tile 2x2 $result} res] } {
-	   puts "ERROR: from montage $res"
+	   @puts "ERROR: from montage $res"
     } else {
-	   puts "created: \"$result\""
+	   #puts "created: \"$result\""
     }
     #exit
 }
