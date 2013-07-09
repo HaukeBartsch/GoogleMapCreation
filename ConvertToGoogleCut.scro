@@ -25,6 +25,18 @@
 #
 ########################################################################
 
+#
+# Do a single tile using ImageMagick
+# convert -verbose -page -50-50 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000066.jp2 \
+#         -page +1450-50 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000067.jp2 \
+#         -page -50+1050 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000092.jp2 \
+#         -page +1450+1050 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000091.jp2 \
+#         +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% \
+#         +channel \( -size 3000x2200 tile:empty.jpg -alpha set \) -insert 0 -background None -flatten /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output/test2.png
+#
+#
+
+
 set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
 set outputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output"
 
@@ -125,7 +137,10 @@ proc process4Tiles { one two three four idir odir } {
     }
 
     set result ${odir}/$ofn
-    if { [catch {exec montage $one $two $three $four -geometry -50-50 -tile 2x2 $result} res] } {
+
+    set cmd "convert -verbose -page -50-50 $one -page +1450-50 $two -page -50+1050 $three -page +1450+1050 $four +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% +channel \\( -size 3000x2200 tile:empty.jpg -alpha set \\) -insert 0 -background None -flatten $result"
+
+    if { [catch {exec $cmd} res] } {
 	   @puts "ERROR: from montage $res"
     } else {
 	   #puts "created: \"$result\""
@@ -174,7 +189,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #}
               puts -nonewline "x"
               # now process the four tiles
-              #process4Tiles $one $two $three $four $idir $odir
+              process4Tiles $one $two $three $four $idir $odir
           } else {
              puts -nonewline "."
           }
