@@ -191,6 +191,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
           } else {
              puts -nonewline "."
           }
+          flush stdout
       }
       puts ""
     }
