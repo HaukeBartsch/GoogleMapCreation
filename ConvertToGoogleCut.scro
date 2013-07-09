@@ -138,7 +138,7 @@ proc process4Tiles { one two three four idir odir } {
 
     set result ${odir}/$ofn
 
-    if { [catch {exec convert -verbose -page -50-50 $one -page +1450-50 $two -page -50+1050 $three -page +1450+1050 $four +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% +channel \( -size 3000x2200 tile:empty.jpg -alpha set \) -insert 0 -background None -flatten $result} res] } {
+    if { [catch {exec convert -page -50-50 $one -page +1450-50 $two -page -50+1050 $three -page +1450+1050 $four +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% +channel \( -size 3000x2200 tile:empty.jpg -alpha set \) -insert 0 -background None -flatten $result} res] } {
 	   puts "ERROR: from montage $res"
     } else {
 	   puts "created: \"$result\""
