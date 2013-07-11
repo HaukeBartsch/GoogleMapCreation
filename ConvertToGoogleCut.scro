@@ -122,7 +122,8 @@ proc readAssemblyData { filename } {
 # Create output tiles given overlapping input tiles
 # input: the number of four tiles that can be concatenated
 # output: writes the new tiles to the output directory
-proc process4Tiles { one two three four idir odir tmpdir } {
+proc process4Tiles { one two three four idir odir } {
+    global scratch
     set ofn ${one}_${two}_${three}_${four}.png
     if { $one != "empty.jpg" } {
 	set one  $idir/000000_[format "%06d" $one].jp2
@@ -137,7 +138,7 @@ proc process4Tiles { one two three four idir odir tmpdir } {
 	set four  $idir/000000_[format "%06d" $four].jp2
     }
 
-    set result ${tmpdir}/$ofn
+    set result ${scratch}/$ofn
 
     if { [file exists $result] } {
        puts -nonewline "-"
@@ -206,7 +207,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #}
               # puts -nonewline "x"
               # now process the four tiles
-              process4Tiles $one $two $three $four $idir $odir $scratch
+              process4Tiles $one $two $three $four $idir $odir
           } else {
              puts -nonewline "."
           }
