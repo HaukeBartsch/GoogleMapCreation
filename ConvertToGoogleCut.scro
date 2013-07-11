@@ -161,8 +161,8 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
     set first 0
     set ars [list -1 -1 -1 -1]
 
-    set totalX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
-    set totalY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
+    set totalX [expr ($asem(TileResolutionX)-$asem(TrimLeft)-$asem(TrimRight)) * $asem(GridX) ]
+    set totalY [expr ($asem(TileResolutionY)-$asem(TrimTop)-$asem(TrimBottom)) * $asem(GridY) ]
 
     # find out the order of tiles, start with the first tile and arrange them into a 2x2 grid
     for { set j 0 } { $j < $maxY } { incr j } {
