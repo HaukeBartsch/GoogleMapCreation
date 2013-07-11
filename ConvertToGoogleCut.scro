@@ -173,7 +173,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               # what are the coordinates of the small tiles?
               set cox [expr $i * $totalX/$maxX]
               set coy [expr $j * $totalY/$maxY]
-              puts "coordinates for $asem($idx1) are $cox x $coy"
+              puts "coordinates for $asem($asem($idx1)) are $cox x $coy"
 
               # find four parts
               set one  $asem($idx1)
