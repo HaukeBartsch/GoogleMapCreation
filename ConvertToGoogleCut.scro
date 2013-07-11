@@ -39,6 +39,7 @@
 
 set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
 set outputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output"
+set scratch "/tmp/"
 
 proc readAssemblyData { filename } {
     if { ![file readable $filename] } {
@@ -121,7 +122,7 @@ proc readAssemblyData { filename } {
 # Create output tiles given overlapping input tiles
 # input: the number of four tiles that can be concatenated
 # output: writes the new tiles to the output directory
-proc process4Tiles { one two three four idir odir } {
+proc process4Tiles { one two three four idir odir tmpdir } {
     set ofn ${one}_${two}_${three}_${four}.png
     if { $one != "empty.jpg" } {
 	set one  $idir/000000_[format "%06d" $one].jp2
@@ -136,7 +137,7 @@ proc process4Tiles { one two three four idir odir } {
 	set four  $idir/000000_[format "%06d" $four].jp2
     }
 
-    set result ${odir}/$ofn
+    set result ${tmpdir}/$ofn
 
     if { [file exists $result] } {
        puts -nonewline "-"
@@ -152,6 +153,8 @@ proc process4Tiles { one two three four idir odir } {
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
+    global scratch
+
     array set asem $assembly
     puts "we have access to the assembly here: $asem(GridX)"
     puts "run this for $maxX x $maxY"
@@ -192,7 +195,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #}
               # puts -nonewline "x"
               # now process the four tiles
-              process4Tiles $one $two $three $four $idir $odir
+              process4Tiles $one $two $three $four $idir $odir $scratch
           } else {
              puts -nonewline "."
           }
