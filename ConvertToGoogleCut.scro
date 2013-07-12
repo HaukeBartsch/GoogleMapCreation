@@ -176,7 +176,8 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #set coy [expr $j * $totalY/$maxY]
               set cox [lindex $asem($asem($idx1)) 0]
               set coy [lindex $asem($asem($idx1)) 1]
-              puts "coordinates for Tile[expr $asem($idx1)-1]X/Y are $cox x $coy"
+              # tiles mentioned in the assembly start counting from 0, asm encodes them starting with 1
+              #puts "coordinates for Tile[expr $asem($idx1)-1]X/Y are $cox x $coy"
 
               # find four parts
               set one  $asem($idx1)
