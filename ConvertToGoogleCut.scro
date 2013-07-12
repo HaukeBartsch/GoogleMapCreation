@@ -40,6 +40,9 @@
 set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
 set outputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output"
 set scratch "/tmp/"
+set tileSizeX 256
+set tileSizeY 256
+set subdirs 3
 
 proc readAssemblyData { filename } {
     if { ![file readable $filename] } {
@@ -257,9 +260,6 @@ if { [info exists assembly(TileResolutionX)] } {
     puts "TileResolutionX/Y could not be found";
 }
 
-set tileSizeX 256
-set tileSizeY 256
-set subdirs 3
 
 # now create a tile cache that is compatible with the rest
 set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
