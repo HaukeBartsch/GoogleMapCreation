@@ -176,6 +176,11 @@ proc process4Tiles { one two three four idir odir loc } {
     set hx [expr floor(1.0 * ($cox+$imsizex) / $tileSizeX)]
     set hy [expr floor(1.0 * ($coy+$imsizey) / $tileSizeY)]
     puts "corners ($cox,$coy): [expr $lx*$tileSizeX]..[expr $hx*$tileSizeY], [expr $ly*$tileSizeX]..[expr $hy*$tileSizeY]"
+
+    # we can now cut out this piece of the cake and convert it into tiles using 
+    #    convert +gravity -crop ${tileSizeX}x${tileSizeY} tiles_%d.png
+    # all of these tiles have to be renamed now according to the number in the sequence
+
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
