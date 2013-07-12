@@ -172,10 +172,10 @@ proc process4Tiles { one two three four idir odir loc } {
     
     # what are the four corners that can contain tiles?
     set lx [expr ceil(1.0 * $cox / $tileSizeX)]
-    set ly [expr ceil($coy / $tileSizeY)]
-    set hx [expr floor(($cox+$imsizex) / $tileSizeX)]
-    set hy [expr floor(($coy+$imsizey) / $tileSizeY)]
-    puts "corners ($cox,$coy): ceil ( $cox / $tileSizeX) * $tileSizeX - $lx -  [expr $lx*$tileSizeX]..[expr $hx*$tileSizeY], [expr $ly*$tileSizeX]..[expr $hy*$tileSizeY]"
+    set ly [expr ceil(1.0 * $coy / $tileSizeY)]
+    set hx [expr floor(1.0 * ($cox+$imsizex) / $tileSizeX)]
+    set hy [expr floor(1.0 * ($coy+$imsizey) / $tileSizeY)]
+    puts "corners ($cox,$coy): [expr $lx*$tileSizeX]..[expr $hx*$tileSizeY], [expr $ly*$tileSizeX]..[expr $hy*$tileSizeY]"
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
