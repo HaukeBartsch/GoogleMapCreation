@@ -122,8 +122,14 @@ proc readAssemblyData { filename } {
 # Create output tiles given overlapping input tiles
 # input: the number of four tiles that can be concatenated
 # output: writes the new tiles to the output directory
-proc process4Tiles { one two three four idir odir } {
+proc process4Tiles { one two three four idir odir loc } {
     global scratch
+    global tileSizeX
+    global tileSizeY
+
+    set cox [ lindex $loc 0]
+    set coy [ lindex $loc 1]
+
     set ofn ${one}_${two}_${three}_${four}.png
     if { $one != "empty.jpg" } {
 	set one  $idir/000000_[format "%06d" $one].jp2
@@ -150,7 +156,16 @@ proc process4Tiles { one two three four idir odir } {
     } else {
 	   puts -nonewline "x"
     }
-    #exit
+
+    # now split this file into tiles based on our naming scheme
+    # we need to export files that are numerically stacked
+
+    # how many tiles will we have?
+    set tilesInX [lindex $loc 2]
+    set tilesInY [lindex $loc 3]
+    puts "total tiles: $tilesInX x $tilesInY"
+
+    
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
@@ -164,6 +179,8 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
 
     set totalX [expr ($asem(TileResolutionX)-$asem(TrimLeft)-$asem(TrimRight)) * $asem(GridX) ]
     set totalY [expr ($asem(TileResolutionY)-$asem(TrimTop)-$asem(TrimBottom)) * $asem(GridY) ]
+    set tilesInX [expr ceil($totalX/$tileSizeX)]
+    set tilesInY [expr ceil($totalY/$tileSizeY)]
 
     # find out the order of tiles, start with the first tile and arrange them into a 2x2 grid
     for { set j 0 } { $j < $maxY } { incr j } {
@@ -177,7 +194,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               set cox [lindex $asem($asem($idx1)) 0]
               set coy [lindex $asem($asem($idx1)) 1]
               # tiles mentioned in the assembly start counting from 0, asm encodes them starting with 1
-              #puts "coordinates for Tile[expr $asem($idx1)-1]X/Y are $cox x $coy"
+              puts "coordinates for Tile[expr $asem($idx1)-1]X/Y are $cox x $coy"
 
               # find four parts
               set one  $asem($idx1)
@@ -208,7 +225,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #}
               # puts -nonewline "x"
               # now process the four tiles
-              process4Tiles $one $two $three $four $idir $odir
+              process4Tiles $one $two $three $four $idir $odir [$cox $coy $tilesInX $tilesInY]
           } else {
              puts -nonewline "."
           }
