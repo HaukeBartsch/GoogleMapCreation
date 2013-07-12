@@ -173,6 +173,7 @@ proc process4Tiles { one two three four idir odir loc } {
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
     global scratch
+    global tileSizeX tileSizeY
 
     array set asem $assembly
     puts "we have access to the assembly here: $asem(GridX)"
