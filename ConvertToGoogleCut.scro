@@ -166,9 +166,16 @@ proc process4Tiles { one two three four idir odir loc } {
     # how many tiles will we have?
     set tilesInX [lindex $loc 2]
     set tilesInY [lindex $loc 3]
+    set imsizex [lindex $loc 4]
+    set imsizey [lindex $loc 5]
     puts "total tiles: $tilesInX x $tilesInY"
-
     
+    # what are the four corners that can contain tiles?
+    set lx [expr ceil($cox / $tileSizeX]
+    set hx [expr ceil($coy / $tileSizeY]
+    set ly [expr floor(($cox+$imsizex) / $tileSizeX]
+    set hy [expr floor(($coy+$imsizey) / $tileSizeY]
+    puts "corners: $lx..$hx, $ly..$hy"
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
@@ -229,7 +236,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
               #}
               # puts -nonewline "x"
               # now process the four tiles
-              process4Tiles $one $two $three $four $idir $odir [list $cox $coy $tilesInX $tilesInY]
+              process4Tiles $one $two $three $four $idir $odir [list $cox $coy $tilesInX $tilesInY  [expr $asem(TileResolutionX)-$asem(TrimLeft)-$asem(TrimRight)] [expr  $asem(TileResolutionY)-$asem(TrimTop)-$asem(TrimBottom)] ]
           } else {
              puts -nonewline "."
           }
