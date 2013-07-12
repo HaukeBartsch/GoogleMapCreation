@@ -175,7 +175,7 @@ proc process4Tiles { one two three four idir odir loc } {
     set ly [expr ceil($coy / $tileSizeY)]
     set hx [expr floor(($cox+$imsizex) / $tileSizeX)]
     set hy [expr floor(($coy+$imsizey) / $tileSizeY)]
-    puts "corners: $lx..$hx, $ly..$hy"
+    puts "corners: [expr $lx*$tileSizeX]..[expr $hx*$tileSizeY], [expr $ly*$tileSizeX]..[expr $hy*$tileSizeY]"
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
