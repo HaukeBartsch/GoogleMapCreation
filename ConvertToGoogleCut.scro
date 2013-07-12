@@ -171,7 +171,7 @@ proc process4Tiles { one two three four idir odir loc } {
     puts "total tiles: $tilesInX x $tilesInY"
     
     # what are the four corners that can contain tiles?
-    set lx [expr ceil($cox / $tileSizeX)]
+    set lx [expr ceil(1.0 * $cox / $tileSizeX)]
     set ly [expr ceil($coy / $tileSizeY)]
     set hx [expr floor(($cox+$imsizex) / $tileSizeX)]
     set hy [expr floor(($coy+$imsizey) / $tileSizeY)]
