@@ -179,6 +179,14 @@ proc process4Tiles { one two three four idir odir loc } {
 
     # we can now cut out this piece of the cake and convert it into tiles using 
     #    convert +gravity -crop ${tileSizeX}x${tileSizeY} tiles_%d.png
+    set tilesDir [file rootname $result]
+    file mkdir $tilesDir
+    if { [catch { exec convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/tiles_%d.png } res] } {
+        puts "ERROR: could not split the first merged tile ($res)"
+    } else {
+        puts -nonewline ":"
+    }
+
     # all of these tiles have to be renamed now according to the number in the sequence
 
 }
