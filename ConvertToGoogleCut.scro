@@ -166,8 +166,8 @@ proc process4Tiles { one two three four idir odir loc } {
     # how many tiles will we have?
     set tilesInX [lindex $loc 2]
     set tilesInY [lindex $loc 3]
-    set imsizex [lindex $loc 4]
-    set imsizey [lindex $loc 5]
+    set imsizex [expr 2*[lindex $loc 4]]
+    set imsizey [expr 2*[lindex $loc 5]]
     puts "total tiles: $tilesInX x $tilesInY, Image size: $imsizex x $imsizey"
     
     # what are the four corners that can contain tiles?
