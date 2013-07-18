@@ -186,7 +186,7 @@ proc process4Tiles { one two three four idir odir loc } {
     set tilesDir [file rootname $result]
     file mkdir $tilesDir
 puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] $tilesDir/cropped.png"
-    if { [catch { exec convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] $tilesDir/cropped.png } res] } {
+    if { [catch { exec convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] +repage $tilesDir/cropped.png } res] } {
        puts "ERROR: could not crop the image to fix the tile size ($res)"
     } else {
        puts -nonewline ":"
