@@ -192,6 +192,7 @@ puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-
        puts -nonewline ":"
     }
 
+    puts "convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%d.png"
     if { [catch { exec convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%d.png } res] } {
         puts "ERROR: could not split the first merged tile ($res)"
     } else {
