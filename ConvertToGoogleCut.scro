@@ -185,7 +185,7 @@ proc process4Tiles { one two three four idir odir loc } {
     #    convert +gravity -crop ${tileSizeX}x${tileSizeY} tiles_%d.png
     set tilesDir [file rootname $result]
     file mkdir $tilesDir
-puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] $tilesDir/cropped.png"
+puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] +repage $tilesDir/cropped.png"
     if { [catch { exec convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] +repage $tilesDir/cropped.png } res] } {
        puts "ERROR: could not crop the image to fix the tile size ($res)"
     } else {
@@ -193,7 +193,7 @@ puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-
     }
 
     puts "convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%d.png"
-    if { [catch { exec convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%d.png } res] } {
+    if { [catch { exec convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%02d.png } res] } {
         puts "ERROR: could not split the first merged tile ($res)"
     } else {
         puts -nonewline ":"
