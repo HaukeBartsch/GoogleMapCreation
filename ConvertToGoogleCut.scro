@@ -181,7 +181,7 @@ proc process4Tiles { one two three four idir odir loc } {
     #    convert +gravity -crop ${tileSizeX}x${tileSizeY} tiles_%d.png
     set tilesDir [file rootname $result]
     file mkdir $tilesDir
-    if { [catch { exec convert $result -crop [expr int($hx-$lx)]x[expr int($hy-ly)]+[expr int($lx)]+[expr int($ly)] $result $tilesDir/cropped.png } res] } {
+    if { [catch { exec convert $result -crop [expr int($hx-$lx)]x[expr int($hy-$ly)]+[expr int($lx)]+[expr int($ly)] $result $tilesDir/cropped.png } res] } {
        puts "ERROR: could not crop the image to fix the tile size ($res)"
     } else {
        puts -nonewline ":"
