@@ -201,11 +201,13 @@ puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-
 
     # all of these tiles have to be renamed now according to the number in the sequence
     set count 0
-    for { set x [expr int($lx)] } { $x < $hx } { incr x } {
-	for { set y [expr int($ly)] } { $y < $hy } { incr y } {
-         # x and y are in terms of cox and coy number of tiles
-         # compute the index of a tile
-	  set count [expr $count + 1]
+    for { set y [expr int($ly)] } { $y < $hy } { incr y } {
+      for { set x [expr int($lx)] } { $x < $hx } { incr x } {
+          # x and y are in terms of cox and coy number of tiles
+          # compute the index of a tile
+	  set idx [expr $y * $cox + $x]
+          set count [expr $count + 1]
+          puts -nonewline ", Da${idx}.png (tiles_[format %02d $count].png)"
       }
     }
     puts "count is $count, should be ($hx - $lx * $hy - $ly)"
