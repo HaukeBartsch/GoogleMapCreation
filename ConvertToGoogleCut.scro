@@ -216,7 +216,10 @@ proc process4Tiles { one two three four idir odir loc } {
     
     # clean up
     file delete -force -- $tilesDir
-    file delete -force -- $result
+    # keep the result to indicate that we did this one already (set length to 0 to save space)
+    # file delete -force -- $result
+    set fp [open $result "w"]
+    close $fp
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
