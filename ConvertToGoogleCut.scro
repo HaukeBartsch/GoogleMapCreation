@@ -207,9 +207,9 @@ proc process4Tiles { one two three four idir odir loc } {
           # x and y are in terms of cox and coy number of tiles
           # compute the index of a tile
 	  set idx [expr $y * $cox + $x]
-          set count [expr $count + 1]
           #puts -nonewline ", Da${idx}.jpg (tiles_[format %02d $count].jpg)"
           file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg
+          set count [expr $count + 1]
       }
     }
     #puts "count is $count, should be ($hx - $lx * $hy - $ly)"
