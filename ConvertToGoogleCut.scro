@@ -201,8 +201,8 @@ puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-
 
     # all of these tiles have to be renamed now according to the number in the sequence
     set count 0
-    for { set x $lx } { $x < $hx } { incr x } {
-      for { set y $ly } { $y < $hy } { incr y } {
+    for { set x [expr int($lx)] } { $x < $hx } { incr x } {
+	for { set y [expr int($ly)] } { $y < $hy } { incr y } {
          # x and y are in terms of cox and coy number of tiles
          # compute the index of a tile
 	  set count [expr $count + 1]
