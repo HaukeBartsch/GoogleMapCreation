@@ -205,7 +205,7 @@ puts "convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-
       for { set y $ly } { $y < $hy } { incr y } {
          # x and y are in terms of cox and coy number of tiles
          # compute the index of a tile
-         incr count
+	  set count [expr $count + 1]
       }
     }
     puts "count is $count, should be ($hx - $lx * $hy - $ly)"
