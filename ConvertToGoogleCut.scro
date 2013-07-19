@@ -129,6 +129,7 @@ proc process4Tiles { one two three four idir odir loc } {
     global scratch
     global tileSizeX
     global tileSizeY
+    global outputDirectory
 
     set cox [ lindex $loc 0]
     set coy [ lindex $loc 1]
@@ -192,7 +193,7 @@ proc process4Tiles { one two three four idir odir loc } {
        #puts -nonewline ":"
     }
 
-    puts "convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%d.png"
+    #puts "convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%d.png"
     if { [catch { exec convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%02d.jpg } res] } {
         puts "ERROR: could not split the first merged tile ($res)"
     } else {
@@ -208,7 +209,7 @@ proc process4Tiles { one two three four idir odir loc } {
 	  set idx [expr $y * $cox + $x]
           set count [expr $count + 1]
           #puts -nonewline ", Da${idx}.jpg (tiles_[format %02d $count].jpg)"
-          file copy -force -- $tilesDir/tiles_[format %02d $count].jpg $outputDirectory/Da${idx}.jpg
+          file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg
       }
     }
     #puts "count is $count, should be ($hx - $lx * $hy - $ly)"
