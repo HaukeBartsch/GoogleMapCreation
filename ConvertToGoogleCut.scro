@@ -212,6 +212,10 @@ proc process4Tiles { one two three four idir odir loc } {
       }
     }
     #puts "count is $count, should be ($hx - $lx * $hy - $ly)"
+    
+    # clean up
+    file delete -force -- $tilesDir
+    file delete -force -- $result
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
