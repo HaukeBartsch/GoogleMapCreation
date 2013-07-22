@@ -37,13 +37,6 @@
 #
 
 
-set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
-set outputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output"
-set scratch "/tmp/"
-set tileSizeX 256
-set tileSizeY 256
-set subdirs 3
-
 proc readAssemblyData { filename } {
     if { ![file readable $filename] } {
 	puts "input file: $filename could not be read";
@@ -293,39 +286,6 @@ proc computeFirstLevel { maxX maxY idir odir assembly } {
     }
 }
 
-set asem [readAssemblyData $inputDirectory/AssemblyData.txt]
-# convert back to array
-array unset assembly
-array set assembly $asem
-# puts [array names assembly]
-
-if { [info exists assembly(TrimLeft)] } {
-    puts "TrimLeft: $assembly(TrimLeft), $assembly(TrimRight)"
-} else {
-    puts "TrimLeft could not be found";
-}
-if { [info exists assembly(GridX)] } {
-    puts "GridX: $assembly(GridX) x $assembly(GridY)"
-} else {
-    puts "GridX could not be found";
-}
-if { [info exists assembly(TileResolutionX)] } {
-    puts "TileResolution: $assembly(TileResolutionX) x $assembly(TileResolutionY)"
-} else {
-    puts "TileResolutionX/Y could not be found";
-}
-
-
-# now create a tile cache that is compatible with the rest
-set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
-set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
-puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
-
-
-computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly]
-puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
-
-
 proc compute { maxX maxY idir odir } {
     global subdirs
 
@@ -450,8 +410,6 @@ if { true } {
 	set level [expr $level - 1]
     }
 }
-
-compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}
 
 # call with 3 to recreate the last three stages
 # assumes that images below that level already exist
@@ -649,3 +607,47 @@ proc tilename { j i level subdirs} {
     set tmp ${tmp}$f
     return $tmp;
 }
+
+#
+# run everything
+#
+
+set inputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001"
+set outputDirectory "/media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output"
+set scratch "/tmp/"
+set tileSizeX 256
+set tileSizeY 256
+set subdirs 3
+
+set asem [readAssemblyData $inputDirectory/AssemblyData.txt]
+# convert back to array
+array unset assembly
+array set assembly $asem
+# puts [array names assembly]
+
+if { [info exists assembly(TrimLeft)] } {
+    puts "TrimLeft: $assembly(TrimLeft), $assembly(TrimRight)"
+} else {
+    puts "TrimLeft could not be found";
+}
+if { [info exists assembly(GridX)] } {
+    puts "GridX: $assembly(GridX) x $assembly(GridY)"
+} else {
+    puts "GridX could not be found";
+}
+if { [info exists assembly(TileResolutionX)] } {
+    puts "TileResolution: $assembly(TileResolutionX) x $assembly(TileResolutionY)"
+} else {
+    puts "TileResolutionX/Y could not be found";
+}
+
+# now create a tile cache that is compatible with the rest
+set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
+set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
+puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
+
+computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly]
+puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
+
+compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}
+
