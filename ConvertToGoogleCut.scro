@@ -325,7 +325,6 @@ puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06
 computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly]
 puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
 
-compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}
 
 proc compute { maxX maxY idir odir } {
     global subdirs
@@ -451,6 +450,8 @@ if { true } {
 	set level [expr $level - 1]
     }
 }
+
+compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}
 
 # call with 3 to recreate the last three stages
 # assumes that images below that level already exist
