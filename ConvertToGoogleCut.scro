@@ -323,7 +323,9 @@ puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06
 
 
 computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly]
-puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}/../"
+puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
+
+compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}
 
 proc compute { maxX maxY idir odir } {
     global subdirs
@@ -389,11 +391,11 @@ if { true } {
 	    set result [tilename ${ic} ${jc} $level $subdirs]
 	    #puts "Create: $result"
          if { ![file exists ${outputDir}/${result}.jpg] } {
-		   # touch the file to indicate that we own it
-		   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
-	       merge4 ${idir}/Da${A}.jpg ${idir}/Da${B}.jpg ${idir}/Da${C}.jpg ${idir}/Da${D}.jpg ${outputDir}/${result}.jpg
+	    # touch the file to indicate that we own it
+	    set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+	    merge4 ${idir}/Da${A}.jpg ${idir}/Da${B}.jpg ${idir}/Da${C}.jpg ${idir}/Da${D}.jpg ${outputDir}/${result}.jpg
 	    
-	       # copy the input data as highest resolution level into output
+	    # copy the input data as highest resolution level into output
             if { [catch {file copy -force ${idir}/Da${A}.jpg ${outputDir}/[tilename ${i} ${j} [expr $level+1] $subdirs].jpg} res] } {
 	          puts "ERROR copying: $res"
             }
