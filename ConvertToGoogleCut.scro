@@ -297,7 +297,7 @@ set asem [readAssemblyData $inputDirectory/AssemblyData.txt]
 # convert back to array
 array unset assembly
 array set assembly $asem
-puts [array names assembly]
+# puts [array names assembly]
 
 if { [info exists assembly(TrimLeft)] } {
     puts "TrimLeft: $assembly(TrimLeft), $assembly(TrimRight)"
@@ -323,7 +323,7 @@ puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06
 
 
 computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly]
-
+puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}/../"
 
 proc compute { maxX maxY idir odir } {
     global subdirs
