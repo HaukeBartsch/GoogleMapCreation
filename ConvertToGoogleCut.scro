@@ -1,5 +1,7 @@
 #!/bin/tclsh 
 
+todo: create empty.jpg with correct resolution, we need two now
+
 ########################################################################
 # This script converts a directory from a microscope (jp2 images)
 # as tiles into a directory suitable for googles map display.
