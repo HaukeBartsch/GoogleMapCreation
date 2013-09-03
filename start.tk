@@ -1,0 +1,61 @@
+#!/usr/bin/wish
+
+package require Tk
+
+proc main {} {
+  buildUI
+}
+
+proc start_processing {} {
+  # get all the variables
+  global input
+  global output
+
+  puts "run $input and $output..."
+  set cmd "/usr/bin/seq 8 | /usr/bin/parallel -n0 tclsh ConvertToGoogleCut.scro $input $output --"
+  puts $cmd
+  if { [catch { exec $cmd } ] } {
+     puts "Error: could not start parallel processing using $cmd"
+  } else {
+     puts "Processing started..."
+  }
+}
+
+proc select_input {} {
+  set dir [tk_chooseDirectory \
+        -initialdir ~ -title "Choose a directory"]
+  if {$dir eq ""} {
+     .input_label insert 0 "No directory selected"
+  } else {
+     .input_label insert 0 "$dir"
+  }
+}
+
+proc select_output {} {
+  set dir [tk_chooseDirectory \
+        -initialdir ~ -title "Choose a directory"]
+  if {$dir eq ""} {
+     .output_label insert 0 "No directory selected"
+  } else {
+     .output_label insert 0 "$dir"
+  }
+}
+
+proc buildUI {} {
+  entry .input_label -width 30 -textvariable input
+  focus .input_label
+  button .select_input -text "Select Input Directory" -command "select_input"
+  entry .output_label -width 30 -textvariable output
+  button .select_output -text "Select Output Directory" -command "select_output"
+  button .but -text "Start" -command "start_processing"
+
+  grid .input_label -row 0 -column 0
+  grid .select_input -row 0 -column 1
+
+  grid .output_label -row 1 -column 0
+  grid .select_output -row 1 -column 1
+
+  grid .but -row 2 -columnspan 2
+}
+
+main
