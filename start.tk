@@ -12,7 +12,7 @@ proc start_processing {} {
   global output
 
   puts "run $input and $output..."
-  set cmd "/usr/bin/seq 8 | /usr/bin/parallel -n0 tclsh ConvertToGoogleCut.scro $input $output --"
+  set cmd "/usr/bin/seq 8 | /usr/bin/parallel -n0 /usr/bin/tclsh ConvertToGoogleCut.scro $input $output --"
   puts $cmd
   if { [catch { exec $cmd } ] } {
      puts "Error: could not start parallel processing using $cmd"
