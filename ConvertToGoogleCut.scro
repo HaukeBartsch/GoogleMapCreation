@@ -88,6 +88,9 @@ proc readAssemblyData { filename } {
                 } else {
 		    set vals [list [lindex $vals 0] $b]
 		}
+		if { $num == 49 } {
+                   puts "FOUND 49: $vals"                   
+		}
                 set assembly($num) $vals
             }
 	}
@@ -101,7 +104,7 @@ proc readAssemblyData { filename } {
     set tiley [expr $assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom) ]
     #set tilex [expr $assembly(TileResolutionX) - $assembly(TrimLeft) - $assembly(TrimRight)]
     #set tiley [expr $assembly(TileResolutionY) - $assembly(TrimTop) - $assembly(TrimBottom)]
-    for { set idx 0 } { $idx < [expr $assembly(GridX) * $assembly(GridY)] } { incr idx } {
+    for { set idx 0 } { $idx < [expr $assembly(GridX) * $assembly(GridY)]+1 } { incr idx } {
 	if { [info exists assembly($idx)] } {
             # we have a tile at this location
 	    set vals $assembly($idx)
@@ -186,6 +189,7 @@ proc process4Tiles { one two three four idir odir loc } {
     } else {
 	   puts -nonewline "x"
     }
+    #puts "RESULT: $result"
 
     # now split this file into tiles based on our naming scheme
     # we need to export files that are numerically stacked
@@ -207,6 +211,7 @@ proc process4Tiles { one two three four idir odir loc } {
     set cornerLy [expr $ly*$tileSizeY]
     set cornerHy [expr $hy*$tileSizeY]
     #puts "corners ($cox,$coy): $cornerLx..$cornerHx, $cornerLy..$cornerHy"
+    #puts "( [expr int($lx)] .. $hx, [expr int($ly)] .. $hy )"
 
     # we can now cut out this piece of the cake and convert it into tiles using 
     #    convert +gravity -crop ${tileSizeX}x${tileSizeY} tiles_%d.png
@@ -228,11 +233,38 @@ proc process4Tiles { one two three four idir odir loc } {
     # all of these tiles have to be renamed now according to the number in the sequence
     set count 0
     for { set y [expr int($ly)] } { $y < $hy } { incr y } {
+
+#      set idx [expr $y * $tilesInX + int($lx) -1 ]
+#      if { $idx >= 0 } {
+#  puts "ADD THIS  ( [expr int($lx)]: $hx) and ${y} ([expr int($ly)]:$hy) $tilesInX -  $idx" 
+#          if { [catch { file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg } res] } {
+#             puts "warning: copy failed, try again..."
+#             if { [catch { file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg } res] } {
+#                puts "Error: could not copy ($res)"
+#             }
+#          }
+#      }
+      
       for { set x [expr int($lx)] } { $x < $hx } { incr x } {
           # x and y are in terms of cox and coy number of tiles
           # compute the index of a tile
 	  set idx [expr $y * $tilesInX + $x]
-          #puts -nonewline ", Da${idx}.jpg (tiles_[format %02d $count].jpg)"
+
+          # puts "something else: ${x} ([expr int($lx)]:$hx) and ${y} ([expr int($ly)]:$hy) steps: $tilesInX -  Da${idx}.jpg"
+
+          #if { $idx == 336 } {
+          #     puts "############################"
+          #     puts "############################"
+          #     puts "### $y * $tilesInX + $x ####"
+          #     puts "############################"
+          #     puts "############################"
+          #}
+          #puts "Da${idx}.jpg <- (tiles_[format %02d $count].jpg)"
+          if { [file exists ${outputDirectory}/Da${idx}.jpg]  &&
+	       [file size ${outputDirectory}/Da${idx}.jpg] > [file size $tilesDir/tiles_[format %02d $count].jpg] } {
+              set count [expr $count + 1]
+	      continue
+	  }
           if { [catch { file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg } res] } {
              puts "warning: copy failed, try again..."
              if { [catch { file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg } res] } {
@@ -245,11 +277,10 @@ proc process4Tiles { one two three four idir odir loc } {
     #puts "count is $count, should be ($hx - $lx * $hy - $ly)"
     
     # clean up
-    file delete -force -- $tilesDir
+#file delete -force -- $tilesDir
     # keep the result to indicate that we did this one already (set length to 0 to save space)
-    # file delete -force -- $result
-    set fp [open $result "w"]
-    close $fp
+#set fp [open $result "w"]
+#close $fp
 }
 
 proc computeFirstLevel { maxX maxY idir odir assembly } {
@@ -383,8 +414,15 @@ if { true } {
 	    #puts " $A $B - Q R  [tilename ${i} ${j} [expr $level+1] $subdirs] [tilename ${i} [expr ${j}+1] [expr $level+1] $subdirs]"
 	    #puts " $C $D - T S  [tilename [expr ${i}+1] ${j} [expr $level+1] $subdirs] [tilename [expr ${i} + 1] [expr ${j} + 1] [expr $level+1] $subdirs]"
 	    
-	    puts "call tilename ${ic} ${jc} $level"
+	    #puts "call tilename ${ic} ${jc} $level"
 	    set result [tilename ${ic} ${jc} $level $subdirs]
+
+	    if { $result == "t/q/q/tqqqqq" } {
+               puts "try to build: create tile by  ${idir}/Da${A}.jpg ${idir}/Da${B}.jpg ${idir}/Da${C}.jpg ${idir}/Da${D}.jpg ${outputDir}/${result}.jpg"
+            } else {
+  	       puts "result is something else: $result"
+	    }
+
 	    #puts "Create: $result"
             if { ![file exists ${outputDir}/${result}.jpg] } {
 	       # touch the file to indicate that we own it
