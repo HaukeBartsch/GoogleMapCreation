@@ -11,4 +11,4 @@ LABEL description="create a docker container with software required to run the c
 ENV HOME /root 
 WORKDIR ${HOME}
 
-RUN apt-get update && apt-get install -y git ImageMagick wget && git clone https://github.com/HaukeBartsch/GoogleMapCreation.git
+RUN apt-get update && apt-get install -y git ImageMagick wget tcl8.4 && git clone https://github.com/HaukeBartsch/GoogleMapCreation.git
