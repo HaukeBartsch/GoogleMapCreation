@@ -11,3 +11,7 @@ The GoogleMapCreation is executed inside a docker container. Here are the comman
     docker build -t googlemapcreation .
     docker run -i -t googlemapcreation /bin/bash
 
+In order to connect the data from outside the container to an /input directory inside the googlemapcreation application use the following call:
+
+    docker run -i -t googlemapcreation -v <full-path-on-file-system>:/input /bin/bash
+
