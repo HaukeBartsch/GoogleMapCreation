@@ -146,8 +146,8 @@ proc process4Tiles { one two three four ofn idir odir loc } {
 
     set cox [ lindex $loc 0]
     set coy [ lindex $loc 1]
-    set pixelnumbigx [expr [lindex $loc 4]+2*50]
-    set pixelnumbigy [expr [lindex $loc 5]+2*50]
+    set pixelnumbigx [expr [lindex $loc 4]+2*290]
+    set pixelnumbigy [expr [lindex $loc 5]+2*217]
     #puts " try to get an empty image of $pixelnumbigx x $pixelnumbigy pixel"
     set empty [getEmpty $pixelnumbigx $pixelnumbigy]
 
@@ -164,7 +164,7 @@ proc process4Tiles { one two three four ofn idir odir loc } {
     #set fp [open $result "w"]
     #close $fp
 
-    if { [catch {exec convert -page -50-50 $one -page +1450-50 $two -page -50+1050 $three -page +1450+1050 $four +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% +channel \( -size 3000x2200 tile:$empty -alpha set \) -insert 0 -background None -flatten $result} res] } {
+    if { [catch {exec convert -page -290-217 $one -page +1630-217 $two -page -290+1223 $three -page +1630+1223 $four +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% +channel \( -size 3880x2880 tile:$empty -alpha set \) -insert 0 -background None -flatten $result} res] } {
 	   puts "ERROR: from montage $res"
     } else {
 	   puts -nonewline "x"
@@ -318,7 +318,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx1)] } {
              set one $asem($idx1)
              set o1 $one
-     	     set one $idir/000000_[format "%06d" $one].jp2
+     	     set one $idir/A1_[format "%05d" $one]_CH4.jpg
 	   } else {
               set one $empty
 	   	 set o1 "empty"
@@ -331,7 +331,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx2)] } {
    	      set two $asem($idx2)
 	   	 set o2 $two
-   	      set two $idir/000000_[format "%06d" $two].jp2
+   	      set two $idir/A1_[format "%05d" $two]_CH4.jpg
            } else {
               set two $empty
 	   	 set o2 "empty"
@@ -343,7 +343,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx3)] } {
 	      set three $asem($idx3)
 	   	 set o3 $three
-     	      set three $idir/000000_[format "%06d" $three].jp2
+     	      set three $idir/A1_[format "%05d" $three]_CH4.jpg
            } else {
               set three $empty
 	   	 set o3 "empty"
@@ -355,7 +355,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx4)] } {
   	      set four $asem($idx4)
 	   	 set o4 $four
-   	      set four $idir/000000_[format "%06d" $four].jp2
+   	      set four $idir/A1_[format "%05d" $four]_CH4.jpg
            } else {
               set four $empty
 	   	 set o4 "empty"
@@ -839,5 +839,5 @@ puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileS
 
 compute [expr int(ceil(1.0*$maxY/$tileSizeY))] [expr int(ceil(1.0*$maxX/$tileSizeX))] $outputDirectory ${outputDirectory}
 
-cd $inputDirectory/../Result
+cd $outputDirectory/../Result
 createLastStages
