@@ -318,7 +318,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx1)] } {
              set one $asem($idx1)
              set o1 $one
-     	     set one $idir/A1_[format "%05d" $one]_CH4.jpg
+     	     set one $idir/*_[format "%05d" $one]_CH4.jpg
 	   } else {
               set one $empty
 	   	 set o1 "empty"
@@ -331,7 +331,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx2)] } {
    	      set two $asem($idx2)
 	   	 set o2 $two
-   	      set two $idir/A1_[format "%05d" $two]_CH4.jpg
+   	      set two $idir/*_[format "%05d" $two]_CH4.jpg
            } else {
               set two $empty
 	   	 set o2 "empty"
@@ -343,7 +343,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx3)] } {
 	      set three $asem($idx3)
 	   	 set o3 $three
-     	      set three $idir/A1_[format "%05d" $three]_CH4.jpg
+     	      set three $idir/*_[format "%05d" $three]_CH4.jpg
            } else {
               set three $empty
 	   	 set o3 "empty"
@@ -355,7 +355,7 @@ proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
            if { [info exists asem($idx4)] } {
   	      set four $asem($idx4)
 	   	 set o4 $four
-   	      set four $idir/A1_[format "%05d" $four]_CH4.jpg
+   	      set four $idir/*_[format "%05d" $four]_CH4.jpg
            } else {
               set four $empty
 	   	 set o4 "empty"
