@@ -841,3 +841,8 @@ compute [expr int(ceil(1.0*$maxY/$tileSizeY))] [expr int(ceil(1.0*$maxX/$tileSiz
 
 cd $outputDirectory/../Result
 createLastStages
+
+file copy /root/GoogleMapCreation/webpage/index.html $outputDirectory/../
+file copy /root/GoogleMapCreation/webpage/getKeyViews.php $outputDirectory/../
+file copy /root/GoogleMapCreation/webpage/setKeyView.php $outputDirectory/../
+file copy /root/GoogleMapCreation/webpage/styles.css $outputDirectory/../
