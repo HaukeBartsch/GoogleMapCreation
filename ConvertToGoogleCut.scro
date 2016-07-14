@@ -211,6 +211,9 @@ proc process4Tiles { one two three four ofn idir odir loc } {
         # split worked, now remove cropped again
         set fp [open $tilesDir/cropped.png "w"]
         close $fp
+
+	set fp [open $result "w"]
+	close $fp
     }
 
     # all of these tiles have to be renamed now according to the number in the sequence
