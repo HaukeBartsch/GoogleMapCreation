@@ -837,15 +837,14 @@ set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRig
 set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
 puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
 
-computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly] $mirrorLR
-puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
+#computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly] $mirrorLR
+#puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
 
-compute [expr int(ceil(1.0*$maxY/$tileSizeY))] [expr int(ceil(1.0*$maxX/$tileSizeX))] $outputDirectory ${outputDirectory}
+#compute [expr int(ceil(1.0*$maxY/$tileSizeY))] [expr int(ceil(1.0*$maxX/$tileSizeX))] $outputDirectory ${outputDirectory}
 
 cd $outputDirectory/../Result
-createLastStages
-
-cp ~/GoogleMapCreation/webpage/* $outputDirectory/../
+#createLastStages
 
 cd ..
+puts "compressing Result directories"
 zipSubDirs $outputDirectory/../zipResult Result 3 1
