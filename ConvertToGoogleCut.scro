@@ -1,0 +1,851 @@
+#!/bin/tclsh 
+
+########################################################################
+# This script converts a directory from a microscope (jp2 images)
+# as tiles into a directory suitable for googles map display.
+# Image names are changed to reflect the trsq convention and sub-sample
+# images are created.
+# The script uses ImageMagic functions to merge images and compute the
+# sub-sample images.
+#
+# Last time called:
+#    tclsh
+#    source ConvertToGoogleCut.scro
+#    compute 645 633 HT_1510_flipped .
+#    (first two numbers are the rows and columns reported by DSS if
+#    export is done as CWS, tile size 512, the first directory contains the
+#    jpg images, the second directory contains the result in a Result/ directory)
+#
+# After creating the sub directires with all the image files they can be
+# packaged for transport using:
+#    zipSubDirs zipResult Result 3 1
+#
+# After transfering the tar-red files over to another machine, login there and
+# call: for u in `ls zipResult/*.tar`; do tar xvf $u; done; cd Result; chmod 777 .
+#
+########################################################################
+
+#
+# Do a single tile using ImageMagick
+# convert -verbose -page -50-50 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000066.jp2 \
+#         -page +1450-50 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000067.jp2 \
+#         -page -50+1050 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000092.jp2 \
+#         -page +1450+1050 /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001/000000_000091.jp2 \
+#         +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% \
+#         +channel \( -size 3000x2200 tile:empty.jpg -alpha set \) -insert 0 -background None -flatten /media/sf_Z_DRIVE/Hauke/RIL/Jp2/0001_output/test2.png
+#
+#
+
+
+proc readAssemblyData { filename } {
+    if { ![file readable $filename] } {
+	puts "input file: $filename could not be read";
+	return;
+    }
+    array set assembly { }
+    set assembly(filename) $filename
+
+    set fp [open $filename "r"]
+
+    while { [gets $fp line] >= 0 } {
+	set elements [string trim [split $line "="]]
+        if { [llength $elements] == 2 } {
+	    set a [string trim [lindex $elements 0]]
+	    set b [string trim [lindex $elements 1]]
+	    if { $a == "TrimLeft" } {
+		set assembly(TrimLeft) $b
+            }
+	    if { $a == "TrimRight" } {
+		set assembly(TrimRight) $b
+            }
+	    if { $a == "TrimTop" } {
+		set assembly(TrimTop) $b
+            }
+	    if { $a == "TrimBottom" } {
+		set assembly(TrimBottom) $b
+            }
+	    if { $a == "GridX" } {
+		set assembly(GridX) $b
+            }
+	    if { $a == "GridY" } {
+		set assembly(GridY) $b
+            }
+	    if { $a == "TileResolutionX" } {
+		set assembly(TileResolutionX) $b
+            }
+	    if { $a == "TileResolutionY" } {
+		set assembly(TileResolutionY) $b
+            }
+            if { [regexp {Tile([0-9]+)(X|Y)} $a all num xy] == 1 } {
+                # convert to tile count which starts with 1
+                set num [expr $num + 1]
+                set vals [list 0 0]
+                if { [info exists assembly($num)] } {
+                   set vals $assembly($num)
+                }
+		if { $xy == "X" } {
+		    set vals [list $b [lindex $vals 1]]
+                } else {
+		    set vals [list [lindex $vals 0] $b]
+		}
+		if { $num == 49 } {
+                   puts "FOUND 49: $vals"                   
+		}
+                set assembly($num) $vals
+            }
+	}
+    }
+
+    close $fp
+    # return as list
+
+    # create the correct index pairs
+    set tilex [expr $assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight) ]
+    set tiley [expr $assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom) ]
+    #set tilex [expr $assembly(TileResolutionX) - $assembly(TrimLeft) - $assembly(TrimRight)]
+    #set tiley [expr $assembly(TileResolutionY) - $assembly(TrimTop) - $assembly(TrimBottom)]
+    for { set idx 0 } { $idx < [expr $assembly(GridX) * $assembly(GridY)]+1 } { incr idx } {
+	if { [info exists assembly($idx)] } {
+            # we have a tile at this location
+	    set vals $assembly($idx)
+	    set x [expr int(floor([lindex $vals 0]/$tilex))]
+	    set y [expr int(floor([lindex $vals 1]/$tiley))]
+            # puts "found x, y: $x, $y"
+            set assembly($x-$y) $idx
+	}
+    }
+
+    return [array get assembly]
+}
+
+# return the filename of an empty image of that size
+# if the file does not exist it will be created
+proc getEmpty { dimx dimy } {
+
+    set fn "/tmp/empty_${dimx}_${dimy}.jpg"
+    if { [file exists $fn] } {
+       return $fn
+    }
+
+    if { [catch {exec convert -size ${dimx}x${dimy} xc:white $fn} res] } {
+       puts "Error: could not write empty file $fn"
+    } else {
+       puts "requested an empty file of size $dimx x $dimy"
+       return $fn
+    }
+}
+
+# Create output tiles given overlapping input tiles
+# input: the number of four tiles that can be concatenated
+# output: writes the new tiles to the output directory
+proc process4Tiles { one two three four ofn idir odir loc } {
+    global scratch
+    global tileSizeX
+    global tileSizeY
+    global outputDirectory
+
+    set cox [ lindex $loc 0]
+    set coy [ lindex $loc 1]
+    set pixelnumbigx [expr [lindex $loc 4]+2*290]
+    set pixelnumbigy [expr [lindex $loc 5]+2*217]
+    #puts " try to get an empty image of $pixelnumbigx x $pixelnumbigy pixel"
+    set empty [getEmpty $pixelnumbigx $pixelnumbigy]
+
+    # output file name:
+    # set ofn ${one}_${two}_${three}_${four}.png
+
+    set result ${scratch}/$ofn
+
+    #if { [file exists $result] } {
+    #   puts -nonewline "-"
+    #   return
+    #}
+    # create an empty file to mark this as ours
+    #set fp [open $result "w"]
+    #close $fp
+
+    if { [catch {exec convert -page -290-217 $one -page +1630-217 $two -page -290+1223 $three -page +1630+1223 $four +page -alpha Set -virtual-pixel transparent -channel A -blur 5x5 -level 50,100% +channel \( -size 3880x2880 tile:$empty -alpha set \) -insert 0 -background None -flatten $result} res] } {
+	   puts "ERROR: from montage $res"
+    } else {
+	   puts -nonewline "x"
+	flush stdout;
+    }
+    #puts "RESULT: $result"
+
+    # now split this file into tiles based on our naming scheme
+    # we need to export files that are numerically stacked
+
+    # how many tiles will we have?
+    set tilesInX [lindex $loc 2]
+    set tilesInY [lindex $loc 3]
+    set imsizex [expr 2*[lindex $loc 4]]
+    set imsizey [expr 2*[lindex $loc 5]]
+    #puts "total tiles: $tilesInX x $tilesInY, Image size: $imsizex x $imsizey"
+    
+    # what are the four corners that can contain tiles?
+    set lx [expr ceil(1.0 * $cox / $tileSizeX)]
+    set ly [expr ceil(1.0 * $coy / $tileSizeY)]
+    set hx [expr floor(1.0 * ($cox+$imsizex) / $tileSizeX)]
+    set hy [expr floor(1.0 * ($coy+$imsizey) / $tileSizeY)]
+    set cornerLx [expr $lx*$tileSizeX]
+    set cornerHx [expr $hx*$tileSizeX]
+    set cornerLy [expr $ly*$tileSizeY]
+    set cornerHy [expr $hy*$tileSizeY]
+    #puts "corners ($cox,$coy): $cornerLx..$cornerHx, $cornerLy..$cornerHy"
+    #puts "( [expr int($lx)] .. $hx, [expr int($ly)] .. $hy )"
+
+    # we can now cut out this piece of the cake and convert it into tiles using 
+    #    convert +gravity -crop ${tileSizeX}x${tileSizeY} tiles_%d.png
+    set tilesDir [file rootname $result]
+    file mkdir $tilesDir
+
+    if { [catch { exec convert $result -crop [expr int($cornerHx-$cornerLx)]x[expr int($cornerHy-$cornerLy)]+[expr int($cornerLx-$cox)]+[expr int($cornerLy-$coy)] +repage $tilesDir/cropped.png } res] } {
+       puts "ERROR: could not crop the image to fix the tile size ($res)"
+    } else {
+       #puts -nonewline ":"
+    }
+
+    if { [catch { exec convert +gravity -crop ${tileSizeX}x${tileSizeY} $tilesDir/cropped.png $tilesDir/tiles_\%02d.jpg } res] } {
+        puts "ERROR: could not split the first merged tile ($res)"
+    } else {
+        # split worked, now remove cropped again
+        set fp [open $tilesDir/cropped.png "w"]
+        close $fp
+
+	set fp [open $result "w"]
+	close $fp
+    }
+
+    # all of these tiles have to be renamed now according to the number in the sequence
+    set count 0
+    for { set y [expr int($ly)] } { $y < $hy } { incr y } {
+
+      for { set x [expr int($lx)] } { $x < $hx } { incr x } {
+          # x and y are in terms of cox and coy number of tiles
+          # compute the index of a tile
+	  set idx [expr $y * $tilesInX + $x]
+
+          # puts "something else: ${x} ([expr int($lx)]:$hx) and ${y} ([expr int($ly)]:$hy) steps: $tilesInX -  Da${idx}.jpg"
+
+          #if { $idx == 336 } {
+          #     puts "############################"
+          #     puts "############################"
+          #     puts "### $y * $tilesInX + $x ####"
+          #     puts "############################"
+          #     puts "############################"
+          #}
+          #puts "Da${idx}.jpg <- (tiles_[format %02d $count].jpg)"
+          catch {
+            if { $mirrorLR == 1 && [file exists ${outputDirectory}/Da${idx}.jpg]  &&
+	         [file size ${outputDirectory}/Da${idx}.jpg] > [file size $tilesDir/tiles_[format %02d $count].jpg] } {
+                set count [expr $count + 1]
+	        continue
+	    }
+          }
+          if { [catch { file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg } res] } {
+             puts "warning: copy failed, try again..."
+             if { [catch { file copy -force -- $tilesDir/tiles_[format %02d $count].jpg ${outputDirectory}/Da${idx}.jpg } res] } {
+                puts "Error: could not copy ($res)"
+             }
+          } else {
+             # copy worked, delete the file now
+	     if { [catch { file delete -force -- $tilesDir/tiles_[format %02d $count].jpg } res] } {
+	        puts "Warning: could not delete file $tilesDir/tiles_[format %02d $count].jpg"
+             }
+          }
+          set count [expr $count + 1]
+      }
+    }
+}
+
+proc computeFirstLevel { maxX maxY idir odir assembly mirrorLR } {
+    global scratch
+    global tileSizeX tileSizeY
+
+    array set asem $assembly
+    puts "we have access to the assembly here: $asem(GridX)"
+    puts "run this for $maxX x $maxY"
+    set first 0
+    #set ars [list -1 -1 -1 -1]
+
+    set totalX [expr ($asem(TileResolutionX)-$asem(TrimLeft)-$asem(TrimRight)) * $asem(GridX) ]
+    set totalY [expr ($asem(TileResolutionY)-$asem(TrimTop)-$asem(TrimBottom)) * $asem(GridY) ]
+    set tilesInX [expr int(ceil(1.0*$totalX/$tileSizeX))]
+    set tilesInY [expr int(ceil(1.0*$totalY/$tileSizeY))]
+    set empty [getEmpty $asem(TileResolutionX) $asem(TileResolutionY)]
+
+    # find out the order of tiles, start with the first tile and arrange them into a 2x2 grid
+    for { set j 0 } { $j < $maxY } { incr j } {
+       for { set i 0 } { $i < $maxX } { incr i } {
+	   if { $mirrorLR == 1 } {
+	       if { ![info exists asem([expr $maxX-1-$i]-$j)] } {
+		   puts -nonewline "."
+		   flush stdout
+		   continue;
+	       }
+           } else {
+	       if { ![info exists asem($i-$j)] } {
+		   puts -nonewline "."
+		   flush stdout
+		   continue;
+	       }
+	   }
+
+           set idx1 $i-$j
+           #puts $asem($idx1)
+           #puts $asem($asem($idx1))
+           if { $mirrorLR == 1 } {
+               # use the location of the tile on the right, but move by 1500 to the left
+	       set cox [lindex $asem($asem([expr $maxX-1-$i]-$j)) 0]
+	       set coy [lindex $asem($asem([expr $maxX-1-$i]-$j)) 1]
+	       set cox [expr $totalX - $cox - ($asem(TileResolutionX)-$asem(TrimLeft)-$asem(TrimRight))]
+	   } else {
+             set cox [lindex $asem($asem($idx1)) 0]
+             set coy [lindex $asem($asem($idx1)) 1]	     
+	   }
+
+           if { $mirrorLR == 1 } {
+	       set idx1 [expr $maxX-1-$i]-$j
+	   }
+
+           # what are the coordinates of the small tiles?
+           #set cox [expr $i * $totalX/$maxX]
+           #set coy [expr $j * $totalY/$maxY]
+
+           #puts "what are the coordinates? $cox - $coy, $asem($idx1)"
+           # tiles mentioned in the assembly start counting from 0, asm encodes them starting with 1
+           #puts "coordinates for Tile[expr $asem($idx1)-1]X/Y are $cox x $coy"
+
+           # find four parts and create the filenames
+
+           if { [info exists asem($idx1)] } {
+             set one $asem($idx1)
+             set o1 $one
+     	     set one $idir/*_[format "%05d" $one]_CH4.jpg
+	   } else {
+              set one $empty
+	   	 set o1 "empty"
+           }
+
+           set idx2 [expr $i+1]-[expr $j+0]
+	   if { $mirrorLR == 1 } {
+	   	  set idx2 [expr $maxX-2-$i]-[expr $j+0]
+           }
+           if { [info exists asem($idx2)] } {
+   	      set two $asem($idx2)
+	   	 set o2 $two
+   	      set two $idir/*_[format "%05d" $two]_CH4.jpg
+           } else {
+              set two $empty
+	   	 set o2 "empty"
+	   }
+           set idx3 [expr $i+0]-[expr $j+1]
+	   if { $mirrorLR == 1 } {
+	   	  set idx3 [expr $maxX-1-$i]-[expr $j+1]
+           }
+           if { [info exists asem($idx3)] } {
+	      set three $asem($idx3)
+	   	 set o3 $three
+     	      set three $idir/*_[format "%05d" $three]_CH4.jpg
+           } else {
+              set three $empty
+	   	 set o3 "empty"
+	   }
+           set idx4 [expr $i+1]-[expr $j+1]
+	   if { $mirrorLR == 1 } {
+	   	  set idx4 [expr $maxX-2-$i]-[expr $j+1]
+           }
+           if { [info exists asem($idx4)] } {
+  	      set four $asem($idx4)
+	   	 set o4 $four
+   	      set four $idir/*_[format "%05d" $four]_CH4.jpg
+           } else {
+              set four $empty
+	   	 set o4 "empty"
+	   }
+
+           # now process the four tiles
+           set ofn ${o1}_${o2}_${o3}_${o4}.png
+
+	   if { [file exists ${scratch}/$ofn ] } {
+	   	  puts -nonewline "-"
+               flush stdout;
+	   	  continue;
+	   }
+           # mark this as ours
+	   set fp [open ${scratch}/$ofn "w"]
+           close $fp	      
+
+           #set ars [list $idx1 $idx2 $idx3 $idx4]
+           if { $mirrorLR == 1 } {
+               # we need to mirror each tile and calculate the new location for the bunch
+ 	       set flipped1 $empty
+ 	       set flipped2 $empty
+ 	       set flipped3 $empty
+ 	       set flipped4 $empty
+	   	  if { $one != $empty } {
+	   	     set flipped1 ${scratch}/${ofn}_[file tail $one]
+                  if { [catch {exec convert $one -flop $flipped1} res] } {
+  	            puts "ERROR: from convert (mirror operation) $res"
+                  }
+               }
+	   	  if { $two != $empty } {
+	   	     set flipped2 ${scratch}/${ofn}_[file tail $two]
+                  if { [catch {exec convert $two -flop $flipped2} res] } {
+  	            puts "ERROR: from convert (mirror operation) $res"
+                  }
+               }
+	   	  if { $three != $empty } {
+	   	     set flipped3 ${scratch}/${ofn}_[file tail $three]
+                  if { [catch {exec convert $three -flop $flipped3} res] } {
+  	            puts "ERROR: from convert (mirror operation) $res"
+                  }
+               }
+	   	  if { $four != $empty } {
+	   	     set flipped4 ${scratch}/${ofn}_[file tail $four]
+                  if { [catch {exec convert $four -flop $flipped4} res] } {
+  	            puts "ERROR: from convert (mirror operation) $res"
+                  }
+               }
+	   	  # now re-order the four tiles
+	   	  set one $flipped1
+	   	  set two $flipped2
+	   	  set three $flipped3
+	   	  set four $flipped4
+           }
+
+	   #puts "$ofn"
+           process4Tiles $one $two $three $four $ofn $idir $odir \
+	   	  [list $cox $coy $tilesInX $tilesInY  \
+	   	       [expr $asem(TileResolutionX)-$asem(TrimLeft)-$asem(TrimRight)] \
+	   	       [expr $asem(TileResolutionY)-$asem(TrimTop)-$asem(TrimBottom)] ]
+
+	   # clean up again by removing the copy of the jp2
+	   if { $mirrorLR == 1 } {
+	   	  if { $one != $empty } {
+	   	      file delete -force $one
+	   	  }
+	   	  if { $two != $empty } {
+	   	      file delete -force $two
+	   	  }
+	   	  if { $three != $empty } {
+	   	      file delete -force $three
+	   	  }
+	   	  if { $four != $empty } {
+	   	      file delete -force $four
+	   	  }
+               # set size to zero to save space
+	       set fp [open ${scratch}/$ofn "w"]; close $fp
+           }
+      }
+      puts ""
+    }
+}
+
+proc compute { maxX maxY idir odir } {
+    global subdirs
+
+    puts "This script expects three parameters, two for the number of tiles in X and Y and one as a filename"
+
+    set d $odir
+    if { $d == "" } {
+	puts "Error: no input directory provided"
+	return
+    }
+	
+    set dir [file dirname $d]
+    file mkdir ${dir}/Result
+    set outputDir ${dir}/Result
+    createSubDirs $outputDir $subdirs 1
+	
+    #
+    #   T
+    #
+    #   TQ | TR
+    #   TT | TS
+    #
+
+    #
+    #  0_0 0_1 | 0_2 0_3
+    #  1_0 1_1 | 1_2 1_3
+    #  --------|--------
+    #  2_0 2_1 | 2_2 2_3
+    #  3_0 3_1 | 3_2 3_3
+    #
+    
+    # how many level do we have to do to get one image?
+    set level 1
+    set tmp [expr $maxY + 1]
+    while { [expr $tmp/2] > 1 } { incr level; set tmp [expr $tmp/2]; }
+    puts "We need $level different levels"
+    
+    # build the last minus 1 level interpolation
+    set ic 0
+    set jc 0
+	
+#    workArea startWorking "Computing..."
+if { true } {
+    for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+
+ 	puts "Computing $i of $maxX"
+
+	set jc 0
+	for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+	    set A [expr $i * $maxY + $j]
+	    set B [expr $i * $maxY + ($j+1)]
+	    set C [expr ($i+1) * $maxY + $j]
+	    set D [expr ($i+1) * $maxY + ($j+1)]
+	    # set A "${i}_${j}"
+	    # set B "${i}_[expr ${j}+1]"
+	    # set C "[expr ${i}+1]_${j}"
+	    # set D "[expr ${i}+1]_[expr ${j}+1]"
+	    #puts " $A $B - Q R  [tilename ${i} ${j} [expr $level+1] $subdirs] [tilename ${i} [expr ${j}+1] [expr $level+1] $subdirs]"
+	    #puts " $C $D - T S  [tilename [expr ${i}+1] ${j} [expr $level+1] $subdirs] [tilename [expr ${i} + 1] [expr ${j} + 1] [expr $level+1] $subdirs]"
+	    
+	    #puts "call tilename ${ic} ${jc} $level"
+	    set result [tilename ${ic} ${jc} $level $subdirs]
+
+	    if { $result == "t/q/q/tqqqqq" } {
+               puts "try to build: create tile by  ${idir}/Da${A}.jpg ${idir}/Da${B}.jpg ${idir}/Da${C}.jpg ${idir}/Da${D}.jpg ${outputDir}/${result}.jpg"
+            } else {
+  	       puts "result is something else: $result"
+	    }
+
+	    #puts "Create: $result"
+            if { ![file exists ${outputDir}/${result}.jpg] } {
+	       # touch the file to indicate that we own it
+	       set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+	       merge4 ${idir}/Da${A}.jpg ${idir}/Da${B}.jpg ${idir}/Da${C}.jpg ${idir}/Da${D}.jpg ${outputDir}/${result}.jpg
+	    
+	       # copy the input data as highest resolution level into output
+               if { [catch {file copy -force ${idir}/Da${A}.jpg ${outputDir}/[tilename ${i} ${j} [expr $level+1] $subdirs].jpg} res] } {
+	            puts -nonewline "o"
+               } else {
+	             puts -nonewline "x"
+               }
+               if { [catch {file copy -force ${idir}/Da${B}.jpg ${outputDir}/[tilename ${i} [expr ${j}+1] [expr $level+1] $subdirs].jpg} res] } {
+	             puts -nonewline "o"
+               } else {
+	             puts -nonewline "x"
+               }
+               if { [catch {file copy -force ${idir}/Da${C}.jpg ${outputDir}/[tilename [expr ${i}+1] ${j} [expr $level+1] $subdirs].jpg} res ] } {
+	             puts -nonewline "o"
+               } else {
+   	             puts -nonewline "x"
+               }
+               if { [catch {file copy -force ${idir}/Da${D}.jpg ${outputDir}/[tilename [expr ${i}+1] [expr ${j}+1] [expr $level+1] $subdirs].jpg} res] } {
+	             puts -nonewline "o"
+               } else {
+	             puts -nonewline "x"
+               }
+	       flush stdout;
+	    }
+	    incr jc
+	}
+	incr ic
+    }
+}
+# END FALSE
+
+    # for all other levels we can merge the previously build tiles
+    while { $level > 0 } {
+	puts "create images for level $level"
+
+	set maxX [expr ceil($maxX/2.0)]
+	set maxY [expr ceil($maxY/2.0)]
+	set ic 0
+	set jc 0
+
+	puts "Images at level $level: $maxX x $maxY"
+	for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+	    set jc 0
+	    for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+		set A [tilename ${i} ${j} $level $subdirs]
+		set B [tilename ${i} [expr ${j} + 1] $level $subdirs]
+		set C [tilename [expr ${i}+1] ${j} $level $subdirs]
+		set D [tilename [expr ${i}+1] [expr ${j} + 1] $level $subdirs]
+		
+		puts " $A $B "
+		puts " $C $D  call tilename ${ic} ${jc} [expr $level -1]"
+		set result [tilename ${ic} ${jc} [expr $level - 1] $subdirs]
+		if { ![file exists ${outputDir}/${result}.jpg] } { 
+		   # touch the file to indicate that we own it
+		   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+  		   merge4 ${outputDir}/${A}.jpg ${outputDir}/${B}.jpg ${outputDir}/${C}.jpg ${outputDir}/${D}.jpg ${outputDir}/${result}.jpg
+		}
+				
+		incr jc
+	    }
+	    incr ic
+	}
+
+	set level [expr $level - 1]
+    }
+}
+
+# call with 3 to recreate the last three stages
+# assumes that images below that level already exist
+proc createLastStages { } {
+    # assume we are in the Result directory
+    set level 3
+    set outputDir "."
+    set subdirs 1
+    set maxX [expr pow(2,$level)]
+    set maxY $maxX
+    set ic 0
+    set jc 0
+
+   puts "images for level: $level"
+   for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+            set jc 0
+            for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+                set A [tilename ${i} ${j} $level $level]
+                set B [tilename ${i} [expr ${j} + 1] $level $level]
+                set C [tilename [expr ${i}+1] ${j} $level $level]
+                set D [tilename [expr ${i}+1] [expr ${j} + 1] $level $level]
+                if { ![file exists ${outputDir}/${A}.jpg] } {
+                   continue;
+                }
+                
+                puts " $A $B "
+                puts " $C $D  call tilename ${ic} ${jc} [expr $level -1]"
+                set result [tilename ${ic} ${jc} [expr $level - 1] [expr $level-1]]
+                puts "we would create file ${outputDir}/${result}.jpg now"
+                #if { ![file exists ${outputDir}/${result}.jpg] } { 
+                   # touch the file to indicate that we own it
+                   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+                   merge4 ${outputDir}/${A}.jpg ${outputDir}/${B}.jpg ${outputDir}/${C}.jpg ${outputDir}/${D}.jpg ${outputDir}/${result}.jpg
+                #}
+                incr jc
+            }
+            incr ic
+    }
+    set level 2
+    set outputDir "."
+    set subdirs 1
+    set maxX [expr pow(2,$level)]
+    set maxY $maxX
+    set ic 0
+    set jc 0
+
+   puts "images for level: $level"
+   for { set i 0 } { $i < $maxX } { set i [expr $i + 2] } {
+            set jc 0
+            for { set j 0 } { $j < $maxY } { set j [expr $j + 2] } {
+                set A [tilename ${i} ${j} $level $level]
+                set B [tilename ${i} [expr ${j} + 1] $level $level]
+                set C [tilename [expr ${i}+1] ${j} $level $level]
+                set D [tilename [expr ${i}+1] [expr ${j} + 1] $level $level]
+                if { ![file exists ${outputDir}/${A}.jpg] } {
+                   continue;
+                }
+
+                puts " $A $B "
+                puts " $C $D  call tilename ${ic} ${jc} [expr $level -1]"
+                set result [tilename ${ic} ${jc} [expr $level - 1] 0]
+                #if { ![file exists ${outputDir}/${result}.jpg] } { 
+                   # touch the file to indicate that we own it
+                   set f [open ${outputDir}/${result}.jpg "w"]; close $f;
+                   merge4 ${outputDir}/${A}.jpg ${outputDir}/${B}.jpg ${outputDir}/${C}.jpg ${outputDir}/${D}.jpg ${outputDir}/${result}.jpg
+                   puts "we would create file ${outputDir}/${result}.jpg now"
+                #}
+                incr jc
+            }
+            incr ic
+    }
+    # last image
+    merge4 ${outputDir}/tq.jpg ${outputDir}/tr.jpg ${outputDir}/tt.jpg ${outputDir}/ts.jpg ${outputDir}/t.jpg
+}
+
+# create all the directories requires recursively
+# call this with startdir 3 1
+proc createSubDirs { startDir levelsTotal level } {
+   file mkdir $startDir/q
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/q $levelsTotal [expr $level + 1]
+   }
+   file mkdir $startDir/r
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/r $levelsTotal [expr $level + 1]
+   }
+   file mkdir $startDir/s
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/s $levelsTotal [expr $level + 1]
+   }
+   file mkdir $startDir/t
+   if { $level < $levelsTotal } {
+      createSubDirs $startDir/t $levelsTotal [expr $level + 1]
+   }
+}
+# call this with zipdir startdir 3 1
+proc zipSubDirs { resultDir startDir levelsTotal level } {
+   if { ![file isdirectory $resultDir] } {
+      file mkdir $resultDir
+   }
+   #file mkdir $startDir/q
+   if { [llength [glob -nocomplain $startDir/q/*.jpg]] > 0 } {
+     exec find $startDir/q/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_q.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/q $levelsTotal [expr $level + 1]
+   }
+   #file mkdir $startDir/r
+   if { [llength [glob -nocomplain $startDir/r/*.jpg]] > 0 } {
+     exec find $startDir/r/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_r.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/r $levelsTotal [expr $level + 1]
+   }
+   #file mkdir $startDir/s
+   if { [llength [glob -nocomplain $startDir/s/*.jpg]] > 0 } {
+     exec find $startDir/s/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_s.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/s $levelsTotal [expr $level + 1]
+   }
+   #file mkdir $startDir/t
+   if { [llength [glob -nocomplain $startDir/t/*.jpg]] > 0 } {
+     exec find $startDir/t/ -maxdepth 1 -name "*.jpg" | xargs tar rvf $resultDir/[join [split $startDir "/"] "_"]_t.tar
+   }
+   if { $level < $levelsTotal } {
+      zipSubDirs $resultDir $startDir/t $levelsTotal [expr $level + 1]
+   }
+}
+
+proc merge4 { A B C D result } {
+    global env tileSizeX tileSizeY
+    # create from 4 256x256 images a new 128x128 image with a 2x2 layout
+
+    set count 0
+    set empty [getEmpty $tileSizeX $tileSizeY]
+    #puts "Try to get an empty image of $tileSizeX x $tileSizeY"
+    if { ![file exists $A] || [file size $A] == 0 } {
+       set A $empty
+       incr count
+    }
+    if { ![file exists $B] || [file size $B] == 0 } {
+       set B $empty
+       incr count
+    }
+    if { ![file exists $C] || [file size $C] == 0 } {
+       set C $empty
+       incr count
+    }
+    if { ![file exists $D] || [file size $D] == 0 } {
+       set D $empty
+       incr count
+    }
+
+    # no sense in creating a fully empty tile, this should save some memory
+    if { $count == 4 } {
+       return;
+    }
+    if { [catch {exec montage -font Bookman $A $B $C $D -interlace plane -geometry [expr ${tileSizeX}/2]x[expr ${tileSizeY}/2]+0+0 $result} res] } {
+	   puts "ERROR: from montage $res"
+    } else {
+	   puts "created: \"$result\""
+    }
+}
+
+proc tilename { j i level subdirs} {
+    set c [expr pow(2,$level)]
+    set d ${i}
+    set e ${j}
+    set f "t"
+    for { set g 0 } { $g < $level } { incr g } {
+  	  set c [expr $c/2]
+	  if { $e < $c } {
+	    if { $d < $c } {
+		set f "${f}q"
+	    } else {
+		set f "${f}r"
+		set d [expr ${d} - ${c}]
+	    }
+	  } else {
+	    if { $d < $c } {
+		set f "${f}t"
+		set e [expr ${e} - ${c}]
+	    } else {
+		set f "${f}s"
+		set d [expr ${d} - ${c}]
+		set e [expr ${e} - ${c}]
+	    }
+	  }
+    }
+    set tmp ""
+    if { [string length $f] >= $subdirs } {
+        for { set i 0 } { $i < $subdirs} { incr i } {
+               set tmp $tmp[string index $f $i]/
+        }
+    }
+    set tmp ${tmp}$f
+    return $tmp;
+}
+
+#
+# run everything
+#
+
+set inputDirectory "/media/sf_Subjects/Mouse_Sections/Slice_003/0003"
+set outputDirectory "/media/sf_Subjects/Mouse_Sections/Slice_003/0003_output"
+
+set mirrorLR 0
+if { $argc == 3 } {
+   # use command line options to specify fiel location
+    set inputDirectory [lindex $argv 0]
+    set outputDirectory [lindex $argv 1]
+    set mirrorLR [lindex $argv 2]
+    puts "processing $inputDirectory, write output to $outputDirectory"
+    if { $mirrorLR == 1 } {
+        puts "Output will be mirrored relative to input tiles.."
+    }
+} else {
+    puts "usage: <inputDirectory> <outputDirectory> <mirror left/right as 0 (no) or 1 (yes)>"
+    puts "       /media/sf_Subjects/Mouse_Sections/Slice_003/0003 /media/sf_Subjects/Mouse_Sections/Slice_003/0003_output 1"
+    exit
+}
+
+set scratch "/tmp/"
+set tileSizeX 256
+set tileSizeY 256
+set subdirs 3
+
+set asem [readAssemblyData $inputDirectory/AssemblyData.txt]
+# convert back to array
+array unset assembly
+array set assembly $asem
+# puts [array names assembly]
+
+if { [info exists assembly(TrimLeft)] } {
+    puts "TrimLeft: $assembly(TrimLeft), $assembly(TrimRight)"
+} else {
+    puts "TrimLeft could not be found";
+}
+if { [info exists assembly(GridX)] } {
+    puts "GridX: $assembly(GridX) x $assembly(GridY)"
+} else {
+    puts "GridX could not be found";
+}
+if { [info exists assembly(TileResolutionX)] } {
+    puts "TileResolution: $assembly(TileResolutionX) x $assembly(TileResolutionY)"
+} else {
+    puts "TileResolutionX/Y could not be found";
+}
+
+# now create a tile cache that is compatible with the rest
+set maxX [expr ($assembly(TileResolutionX)-$assembly(TrimLeft)-$assembly(TrimRight)) * $assembly(GridX) ]
+set maxY [expr ($assembly(TileResolutionY)-$assembly(TrimTop)-$assembly(TrimBottom)) * $assembly(GridY) ]
+puts "total size of image will be $maxX x $maxY which maps to 000000_[format %06d [expr 1]] ... 000000_[format %06d [expr $assembly(GridX) * $assembly(GridY)]] (some might be missing)"
+
+computeFirstLevel $assembly(GridX) $assembly(GridY) $inputDirectory $outputDirectory [array get assembly] $mirrorLR
+puts "now compute the second level using compute [expr int(ceil(1.0*$maxX/$tileSizeX))] [expr int(ceil(1.0*$maxY/$tileSizeY))] $outputDirectory ${outputDirectory}"
+
+compute [expr int(ceil(1.0*$maxY/$tileSizeY))] [expr int(ceil(1.0*$maxX/$tileSizeX))] $outputDirectory ${outputDirectory}
+
+cd $outputDirectory/../Result
+createLastStages
+
+file copy /root/GoogleMapCreation/webpage/index.html $outputDirectory/../
+file copy /root/GoogleMapCreation/webpage/getKeyViews.php $outputDirectory/../
+file copy /root/GoogleMapCreation/webpage/setKeyView.php $outputDirectory/../
+file copy /root/GoogleMapCreation/webpage/styles.css $outputDirectory/../
