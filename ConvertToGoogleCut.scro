@@ -844,3 +844,5 @@ compute [expr int(ceil(1.0*$maxY/$tileSizeY))] [expr int(ceil(1.0*$maxX/$tileSiz
 
 cd $outputDirectory/../Result
 createLastStages
+
+cp ~/GoogleMapCreation/webpage/* $outputDirectory/../
