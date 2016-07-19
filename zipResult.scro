@@ -848,3 +848,9 @@ cd $outputDirectory/../Result
 cd ..
 puts "compressing Result directories"
 zipSubDirs $outputDirectory/../zipResult Result 3 1
+
+set files [glob $outputDirectory/../Result/*.jpg]
+
+foreach f $files {
+    file copy $f $outputDirectory/../zipResult
+}
